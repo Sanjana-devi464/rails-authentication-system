@@ -1,0 +1,534 @@
+<!-- Enhanced Global Search -->
+<% content_for :title, "Search Results" %>
+
+<!-- Search Hero Section -->
+<div class="search-hero bg-gradient-primary text-white py-5 mb-4 rounded">
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-5 fw-bold mb-3">
+          <i class="fas fa-search me-3"></i>
+          Search Everything
+        </h1>
+        <p class="lead mb-4">
+          Find posts, users, and content across our entire platform
+        </p>
+      </div>
+      <div class="col-lg-4 text-center">
+        <div class="search-stats">
+          <% if params[:q].present? %>
+            <div class="stat-card bg-white bg-opacity-20 rounded p-3">
+              <h3 class="h4 mb-1"><%= @total_results %></h3>
+              <small>Results Found</small>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Advanced Search Form -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <%= form_with url: search_path, method: :get, local: true, class: "advanced-search-form" do |f| %>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="input-group input-group-lg">
+            <span class="input-group-text">
+              <i class="fas fa-search text-primary"></i>
+            </span>
+            <%= f.text_field :q, 
+                value: params[:q], 
+                placeholder: "Search for anything...", 
+                class: "form-control",
+                autofocus: true %>
+          </div>
+        </div>
+        
+        <div class="col-md-2">
+          <%= f.select :type, 
+              options_for_select([
+                ['Everything', 'all'],
+                ['Posts', 'posts'],
+                ['Users', 'users'],
+                ['Comments', 'comments']
+              ], params[:type]), 
+              {}, 
+              { class: "form-select form-select-lg" } %>
+        </div>
+        
+        <div class="col-md-2">
+          <%= f.select :sort, 
+              options_for_select([
+                ['Relevance', 'relevance'],
+                ['Date (Newest)', 'date_desc'],
+                ['Date (Oldest)', 'date_asc'],
+                ['Popularity', 'popularity']
+              ], params[:sort]), 
+              {}, 
+              { class: "form-select form-select-lg" } %>
+        </div>
+        
+        <div class="col-md-2">
+          <div class="d-grid">
+            <%= f.submit "Search", class: "btn btn-primary btn-lg" %>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Advanced Filters Toggle -->
+      <div class="mt-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+          <i class="fas fa-sliders-h me-1"></i>
+          Advanced Filters
+        </button>
+      </div>
+      
+      <!-- Advanced Filters (Collapsible) -->
+      <div class="collapse mt-3" id="advancedFilters">
+        <div class="card bg-light">
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <%= f.label :date_from, "Date From", class: "form-label" %>
+                <%= f.date_field :date_from, value: params[:date_from], class: "form-control" %>
+              </div>
+              <div class="col-md-3">
+                <%= f.label :date_to, "Date To", class: "form-label" %>
+                <%= f.date_field :date_to, value: params[:date_to], class: "form-control" %>
+              </div>
+              <div class="col-md-3">
+                <%= f.label :author, "Author", class: "form-label" %>
+                <%= f.select :author, 
+                    options_from_collection_for_select(User.all, :id, :display_name, params[:author]), 
+                    { prompt: 'Any Author' }, 
+                    { class: "form-select" } %>
+              </div>
+              <div class="col-md-3">
+                <%= f.label :category, "Category", class: "form-label" %>
+                <%= f.select :category, 
+                    options_for_select([
+                      ['Technology', 'tech'],
+                      ['Lifestyle', 'lifestyle'],
+                      ['Business', 'business'],
+                      ['Education', 'education']
+                    ], params[:category]), 
+                    { prompt: 'Any Category' }, 
+                    { class: "form-select" } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Search Results -->
+<% if params[:q].present? %>
+  <!-- Results Summary -->
+  <div class="results-summary mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-1">
+          Search Results for "<strong><%= params[:q] %></strong>"
+        </h5>
+        <p class="text-muted mb-0">
+          Found <%= @total_results %> results in <%= @search_time %>ms
+        </p>
+      </div>
+      <div>
+        <%= link_to search_path, class: "btn btn-outline-secondary" do %>
+          <i class="fas fa-times me-1"></i>
+          Clear Search
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Tabs -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0">
+      <ul class="nav nav-tabs card-header-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link <%= 'active' if params[:type].blank? || params[:type] == 'all' %>" 
+                  id="all-tab" data-bs-toggle="tab" data-bs-target="#all-results" type="button" role="tab">
+            <i class="fas fa-globe me-1"></i>
+            All (<%= @total_results %>)
+          </button>
+        </li>
+        <% if @posts.any? %>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link <%= 'active' if params[:type] == 'posts' %>" 
+                    id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts-results" type="button" role="tab">
+              <i class="fas fa-file-alt me-1"></i>
+              Posts (<%= @posts.count %>)
+            </button>
+          </li>
+        <% end %>
+        <% if @users.any? %>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link <%= 'active' if params[:type] == 'users' %>" 
+                    id="users-tab" data-bs-toggle="tab" data-bs-target="#users-results" type="button" role="tab">
+              <i class="fas fa-users me-1"></i>
+              Users (<%= @users.count %>)
+            </button>
+          </li>
+        <% end %>
+        <% if @comments.any? %>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link <%= 'active' if params[:type] == 'comments' %>" 
+                    id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments-results" type="button" role="tab">
+              <i class="fas fa-comments me-1"></i>
+              Comments (<%= @comments.count %>)
+            </button>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- All Results -->
+    <div class="tab-pane fade <%= 'show active' if params[:type].blank? || params[:type] == 'all' %>" 
+         id="all-results" role="tabpanel">
+      
+      <!-- Posts Results -->
+      <% if @posts.any? %>
+        <div class="result-section mb-5">
+          <h5 class="result-section-title mb-3">
+            <i class="fas fa-file-alt text-primary me-2"></i>
+            Posts
+          </h5>
+          <div class="row">
+            <% @posts.limit(6).each do |post| %>
+              <div class="col-md-6 col-lg-4 mb-3">
+                <%= render 'search_result_post', post: post, query: params[:q] %>
+              </div>
+            <% end %>
+          </div>
+          <% if @posts.count > 6 %>
+            <div class="text-center">
+              <%= link_to search_path(q: params[:q], type: 'posts'), class: "btn btn-outline-primary" do %>
+                View All <%= @posts.count %> Posts
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Users Results -->
+      <% if @users.any? %>
+        <div class="result-section mb-5">
+          <h5 class="result-section-title mb-3">
+            <i class="fas fa-users text-success me-2"></i>
+            Users
+          </h5>
+          <div class="row">
+            <% @users.limit(6).each do |user| %>
+              <div class="col-md-6 col-lg-4 mb-3">
+                <%= render 'search_result_user', user: user, query: params[:q] %>
+              </div>
+            <% end %>
+          </div>
+          <% if @users.count > 6 %>
+            <div class="text-center">
+              <%= link_to search_path(q: params[:q], type: 'users'), class: "btn btn-outline-success" do %>
+                View All <%= @users.count %> Users
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Comments Results -->
+      <% if @comments.any? %>
+        <div class="result-section">
+          <h5 class="result-section-title mb-3">
+            <i class="fas fa-comments text-info me-2"></i>
+            Comments
+          </h5>
+          <% @comments.limit(5).each do |comment| %>
+            <%= render 'search_result_comment', comment: comment, query: params[:q] %>
+          <% end %>
+          <% if @comments.count > 5 %>
+            <div class="text-center mt-3">
+              <%= link_to search_path(q: params[:q], type: 'comments'), class: "btn btn-outline-info" do %>
+                View All <%= @comments.count %> Comments
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Posts Only -->
+    <div class="tab-pane fade <%= 'show active' if params[:type] == 'posts' %>" 
+         id="posts-results" role="tabpanel">
+      <% if @posts.any? %>
+        <div class="row">
+          <% @posts.each do |post| %>
+            <div class="col-md-6 col-lg-4 mb-4">
+              <%= render 'search_result_post', post: post, query: params[:q] %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <%= render 'no_results', type: 'posts' %>
+      <% end %>
+    </div>
+
+    <!-- Users Only -->
+    <div class="tab-pane fade <%= 'show active' if params[:type] == 'users' %>" 
+         id="users-results" role="tabpanel">
+      <% if @users.any? %>
+        <div class="row">
+          <% @users.each do |user| %>
+            <div class="col-md-6 col-lg-4 mb-4">
+              <%= render 'search_result_user', user: user, query: params[:q] %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <%= render 'no_results', type: 'users' %>
+      <% end %>
+    </div>
+
+    <!-- Comments Only -->
+    <div class="tab-pane fade <%= 'show active' if params[:type] == 'comments' %>" 
+         id="comments-results" role="tabpanel">
+      <% if @comments.any? %>
+        <% @comments.each do |comment| %>
+          <%= render 'search_result_comment', comment: comment, query: params[:q] %>
+        <% end %>
+      <% else %>
+        <%= render 'no_results', type: 'comments' %>
+      <% end %>
+    </div>
+  </div>
+<% else %>
+  <!-- Search Suggestions -->
+  <div class="search-suggestions">
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="mb-3">
+              <i class="fas fa-lightbulb text-warning me-2"></i>
+              Search Tips
+            </h5>
+            <div class="row">
+              <div class="col-md-6">
+                <ul class="list-unstyled">
+                  <li class="mb-2">
+                    <i class="fas fa-check text-success me-2"></i>
+                    Use specific keywords
+                  </li>
+                  <li class="mb-2">
+                    <i class="fas fa-check text-success me-2"></i>
+                    Try different word combinations
+                  </li>
+                  <li class="mb-2">
+                    <i class="fas fa-check text-success me-2"></i>
+                    Search by author names
+                  </li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <ul class="list-unstyled">
+                  <li class="mb-2">
+                    <i class="fas fa-check text-success me-2"></i>
+                    Use quotes for exact phrases
+                  </li>
+                  <li class="mb-2">
+                    <i class="fas fa-check text-success me-2"></i>
+                    Filter by date ranges
+                  </li>
+                  <li class="mb-2">
+                    <i class="fas fa-check text-success me-2"></i>
+                    Browse by categories
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="mb-3">
+              <i class="fas fa-fire text-danger me-2"></i>
+              Popular Searches
+            </h5>
+            <div class="popular-searches">
+              <%= link_to search_path(q: 'technology'), class: "badge bg-primary me-2 mb-2 text-decoration-none" do %>
+                technology
+              <% end %>
+              <%= link_to search_path(q: 'tutorial'), class: "badge bg-success me-2 mb-2 text-decoration-none" do %>
+                tutorial
+              <% end %>
+              <%= link_to search_path(q: 'programming'), class: "badge bg-info me-2 mb-2 text-decoration-none" do %>
+                programming
+              <% end %>
+              <%= link_to search_path(q: 'web development'), class: "badge bg-warning me-2 mb-2 text-decoration-none" do %>
+                web development
+              <% end %>
+              <%= link_to search_path(q: 'javascript'), class: "badge bg-danger me-2 mb-2 text-decoration-none" do %>
+                javascript
+              <% end %>
+              <%= link_to search_path(q: 'ruby on rails'), class: "badge bg-secondary me-2 mb-2 text-decoration-none" do %>
+                ruby on rails
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<!-- Custom Styles -->
+<style>
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, #6f42c1 100%);
+  }
+
+  .search-hero {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .search-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%), 
+                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%);
+    background-size: 30px 30px;
+  }
+
+  .result-section {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 2rem;
+  }
+
+  .result-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .search-result-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .search-result-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .highlight {
+    background-color: yellow;
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+
+  .popular-searches .badge {
+    font-size: 0.9em;
+    padding: 0.5em 0.8em;
+    transition: all 0.2s ease;
+  }
+
+  .popular-searches .badge:hover {
+    transform: scale(1.1);
+  }
+
+  .stat-card {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .advanced-search-form .form-control:focus,
+  .advanced-search-form .form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+</style>
+
+<!-- JavaScript for Enhanced Search -->
+<script>
+  // Highlight search terms in results
+  function highlightSearchTerms(query) {
+    if (!query) return;
+    
+    const terms = query.split(' ').filter(term => term.length > 2);
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      null,
+      false
+    );
+
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node);
+    }
+
+    textNodes.forEach(textNode => {
+      let content = textNode.textContent;
+      let hasHighlight = false;
+      
+      terms.forEach(term => {
+        const regex = new RegExp(`(${term})`, 'gi');
+        if (regex.test(content)) {
+          content = content.replace(regex, '<span class="highlight">$1</span>');
+          hasHighlight = true;
+        }
+      });
+      
+      if (hasHighlight) {
+        const wrapper = document.createElement('span');
+        wrapper.innerHTML = content;
+        textNode.parentNode.replaceChild(wrapper, textNode);
+      }
+    });
+  }
+
+  // Initialize highlighting on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const query = '<%= params[:q] %>';
+    if (query) {
+      highlightSearchTerms(query);
+    }
+  });
+
+  // Auto-complete functionality
+  let searchTimeout;
+  const searchInput = document.querySelector('#q');
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        // Implement auto-complete suggestions
+        console.log('Searching for:', this.value);
+      }, 300);
+    });
+  }
+
+  // Search suggestions
+  function performSearch(query) {
+    const form = document.querySelector('.advanced-search-form');
+    const queryInput = form.querySelector('#q');
+    queryInput.value = query;
+    form.submit();
+  }
+</script>

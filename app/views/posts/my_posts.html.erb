@@ -1,0 +1,337 @@
+<%# My Posts Dashboard %>
+<% content_for :title, "My Posts" %>
+
+<div class="container-fluid py-4">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h2 text-dark mb-1">
+            <i class="fas fa-user-edit me-2 text-primary"></i>
+            My Posts
+          </h1>
+          <p class="text-muted mb-0">Manage your blog posts and drafts</p>
+        </div>
+        <div class="d-flex gap-2">
+          <%= link_to new_post_path, class: "btn btn-primary" do %>
+            <i class="fas fa-plus me-1"></i>
+            New Post
+          <% end %>
+          <%= link_to posts_path, class: "btn btn-outline-primary" do %>
+            <i class="fas fa-globe me-1"></i>
+            View All Posts
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card bg-gradient-primary text-white border-0">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-title text-white-50 mb-1">Total Posts</h6>
+              <h2 class="mb-0"><%= @total_count %></h2>
+            </div>
+            <div class="opacity-75">
+              <i class="fas fa-blog fa-2x"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-gradient-success text-white border-0">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-title text-white-50 mb-1">Published</h6>
+              <h2 class="mb-0"><%= @published_count %></h2>
+            </div>
+            <div class="opacity-75">
+              <i class="fas fa-eye fa-2x"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-gradient-warning text-white border-0">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-title text-white-50 mb-1">Drafts</h6>
+              <h2 class="mb-0"><%= @draft_count %></h2>
+            </div>
+            <div class="opacity-75">
+              <i class="fas fa-file-alt fa-2x"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <%= search_form_for @q, url: my_posts_posts_path, method: :get, class: "row g-3" do |f| %>
+            <div class="col-md-6">
+              <%= f.search_field :title_cont, 
+                    placeholder: "Search by title...", 
+                    class: "form-control",
+                    value: params.dig(:q, :title_cont) %>
+            </div>
+            <div class="col-md-3">
+              <%= f.select :status_eq, 
+                    options_for_select([
+                      ['All Posts', ''], 
+                      ['Published', 'published'], 
+                      ['Drafts', 'draft']
+                    ], params.dig(:q, :status_eq)), 
+                    {}, 
+                    { class: "form-select" } %>
+            </div>
+            <div class="col-md-3">
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                  <i class="fas fa-search me-1"></i>
+                  Search
+                </button>
+                <%= link_to my_posts_posts_path, class: "btn btn-outline-secondary" do %>
+                  <i class="fas fa-times"></i>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Posts List -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>
+            Your Posts
+            <% if params.dig(:q, :title_cont).present? || params.dig(:q, :status_eq).present? %>
+              <span class="badge bg-primary ms-2">Filtered</span>
+            <% end %>
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <% if @posts.any? %>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col" class="border-0">
+                      <%= sort_link(@q, :title, "Title", class: "text-decoration-none") %>
+                    </th>
+                    <th scope="col" class="border-0">
+                      <%= sort_link(@q, :status, "Status", class: "text-decoration-none") %>
+                    </th>
+                    <th scope="col" class="border-0">
+                      <%= sort_link(@q, :created_at, "Created", class: "text-decoration-none") %>
+                    </th>
+                    <th scope="col" class="border-0">Stats</th>
+                    <th scope="col" class="border-0 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @posts.each do |post| %>
+                    <tr>
+                      <td class="align-middle">
+                        <div>
+                          <h6 class="mb-1">
+                            <%= link_to post.title, post_path(post), 
+                                  class: "text-decoration-none text-dark" %>
+                          </h6>
+                          <small class="text-muted">
+                            <%= post.excerpt(80) %>
+                          </small>
+                        </div>
+                      </td>
+                      <td class="align-middle">
+                        <span class="badge bg-<%= post.status == 'published' ? 'success' : 'secondary' %>">
+                          <i class="fas fa-<%= post.status == 'published' ? 'eye' : 'file-alt' %> me-1"></i>
+                          <%= post.status.titleize %>
+                        </span>
+                      </td>
+                      <td class="align-middle">
+                        <div>
+                          <div class="fw-semibold"><%= post.formatted_created_at %></div>
+                          <% if post.updated_at != post.created_at %>
+                            <small class="text-muted">
+                              Updated <%= time_ago_in_words(post.updated_at) %> ago
+                            </small>
+                          <% end %>
+                        </div>
+                      </td>
+                      <td class="align-middle">
+                        <small class="text-muted">
+                          <div><%= pluralize(post.word_count, 'word') %></div>
+                          <div><%= post.reading_time %></div>
+                        </small>
+                      </td>
+                      <td class="align-middle text-center">
+                        <div class="btn-group" role="group">
+                          <%= link_to post_path(post), 
+                                class: "btn btn-sm btn-outline-primary",
+                                title: "View Post" do %>
+                            <i class="fas fa-eye"></i>
+                          <% end %>
+                          <%= link_to edit_post_path(post), 
+                                class: "btn btn-sm btn-outline-secondary",
+                                title: "Edit Post" do %>
+                            <i class="fas fa-edit"></i>
+                          <% end %>
+                          <div class="btn-group" role="group">
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-info dropdown-toggle" 
+                                    data-bs-toggle="dropdown">
+                              <i class="fas fa-cog"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                              <% if post.published? %>
+                                <li>
+                                  <%= button_to unpublish_post_path(post), 
+                                        method: :post,
+                                        class: "dropdown-item btn btn-link p-0 text-start",
+                                        style: "border: none; background: none;",
+                                        data: { 
+                                          confirm: "Move this post to drafts?" 
+                                        } do %>
+                                    <i class="fas fa-eye-slash me-2"></i>
+                                    Move to Drafts
+                                  <% end %>
+                                </li>
+                              <% else %>
+                                <li>
+                                  <%= button_to publish_post_path(post), 
+                                        method: :post,
+                                        class: "dropdown-item btn btn-link p-0 text-start",
+                                        style: "border: none; background: none;" do %>
+                                    <i class="fas fa-eye me-2"></i>
+                                    Publish Post
+                                  <% end %>
+                                </li>
+                              <% end %>
+                              <li><hr class="dropdown-divider"></li>
+                              <li>
+                                <%= link_to confirm_delete_post_path(post), 
+                                      class: "dropdown-item text-danger" do %>
+                                  <i class="fas fa-trash me-2"></i>
+                                  Delete Post
+                                <% end %>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <!-- Empty State -->
+            <div class="text-center py-5">
+              <div class="mb-4">
+                <i class="fas fa-blog fa-4x text-muted"></i>
+              </div>
+              <h4 class="text-muted mb-3">
+                <% if params.dig(:q, :title_cont).present? || params.dig(:q, :status_eq).present? %>
+                  No Posts Match Your Search
+                <% else %>
+                  No Posts Yet
+                <% end %>
+              </h4>
+              <p class="text-muted mb-4">
+                <% if params.dig(:q, :title_cont).present? || params.dig(:q, :status_eq).present? %>
+                  Try adjusting your search criteria or filters.
+                <% else %>
+                  Start sharing your thoughts and experiences with the community.
+                <% end %>
+              </p>
+              <% unless params.dig(:q, :title_cont).present? || params.dig(:q, :status_eq).present? %>
+                <%= link_to "Create Your First Post", new_post_path, 
+                      class: "btn btn-primary btn-lg" %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <% if @posts.respond_to?(:current_page) %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="d-flex justify-content-center">
+          <%= paginate @posts, theme: 'twitter-bootstrap-4' %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Custom CSS -->
+<style>
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .bg-gradient-success {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+  
+  .bg-gradient-warning {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+  
+  .card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .btn-group .btn {
+    border-radius: 6px;
+  }
+  
+  .btn-group .btn:not(:last-child) {
+    margin-right: 2px;
+  }
+  
+  .dropdown-menu {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  
+  .badge {
+    font-weight: 500;
+  }
+  
+  .table th {
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+  }
+</style>

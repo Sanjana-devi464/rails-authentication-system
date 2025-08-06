@@ -1,0 +1,270 @@
+<% content_for :title, "Browse Profiles" %>
+
+<div class="container-fluid py-4">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h2 mb-1">
+            <i class="fas fa-users text-primary me-2"></i>
+            Browse Profiles
+          </h1>
+          <p class="text-muted mb-0">Discover and connect with community members</p>
+        </div>
+        <div class="d-flex gap-2">
+          <%= link_to analytics_profiles_path, class: "btn btn-outline-secondary", title: "View Analytics" do %>
+            <i class="fas fa-chart-bar me-1"></i>
+            Analytics
+          <% end if current_user&.admin? %>
+          <%= link_to edit_profile_path(current_user), class: "btn btn-primary" do %>
+            <i class="fas fa-edit me-1"></i>
+            Edit My Profile
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <%= form_with url: profiles_path, method: :get, local: true, class: "d-flex gap-3 align-items-end" do |f| %>
+            <div class="flex-grow-1">
+              <%= f.text_field :q, 
+                    value: params[:q], 
+                    placeholder: "Search by name, username, occupation, or bio...", 
+                    class: "form-control form-control-lg",
+                    data: { 
+                      controller: "search",
+                      search_target: "input",
+                      action: "input->search#perform"
+                    } %>
+            </div>
+            <div>
+              <%= f.submit "Search", class: "btn btn-primary btn-lg px-4" %>
+            </div>
+            <% if params[:q].present? %>
+              <div>
+                <%= link_to profiles_path, class: "btn btn-outline-secondary btn-lg" do %>
+                  <i class="fas fa-times me-1"></i>
+                  Clear
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Featured Users Section -->
+  <% if @featured_users.present? && params[:q].blank? %>
+    <div class="row mb-4">
+      <div class="col-12">
+        <h3 class="h4 mb-3">
+          <i class="fas fa-star text-warning me-2"></i>
+          Featured Members
+        </h3>
+        <div class="row g-3">
+          <% @featured_users.each do |user| %>
+            <div class="col-md-6 col-lg-4 col-xl-2">
+              <div class="card h-100 border-0 shadow-sm hover-lift">
+                <div class="card-body text-center p-3">
+                  <%= link_to profile_path(user), class: "text-decoration-none" do %>
+                    <div class="position-relative d-inline-block mb-2">
+                      <img src="<%= user.avatar_url %>" 
+                           alt="<%= user.display_name %>" 
+                           class="rounded-circle border border-2 border-light shadow-sm"
+                           style="width: 60px; height: 60px; object-fit: cover;">
+                      <% if user.online? %>
+                        <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle" 
+                              style="width: 16px; height: 16px;" 
+                              title="Online"></span>
+                      <% end %>
+                    </div>
+                    <h6 class="card-title mb-1 text-dark fw-bold"><%= user.display_name %></h6>
+                  <% end %>
+                  <p class="card-text small text-muted mb-1">
+                    <%= user.profile&.occupation&.truncate(25) || "No occupation set" %>
+                  </p>
+                  <small class="text-muted">
+                    <i class="fas fa-eye me-1"></i>
+                    <%= user.profile&.profile_views || 0 %> views
+                  </small>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Search Results / All Users -->
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h4 mb-0">
+          <% if params[:q].present? %>
+            <i class="fas fa-search text-primary me-2"></i>
+            Search Results for "<%= params[:q] %>"
+          <% else %>
+            <i class="fas fa-users text-primary me-2"></i>
+            All Members
+          <% end %>
+        </h3>
+        <div class="text-muted">
+          <%= @users.total_count %> members found
+        </div>
+      </div>
+
+      <% if @users.any? %>
+        <div class="row g-4">
+          <% @users.each do |user| %>
+            <div class="col-md-6 col-lg-4 col-xl-3">
+              <div class="card h-100 border-0 shadow-sm hover-lift">
+                <div class="card-body">
+                  <!-- User Header -->
+                  <div class="d-flex align-items-start mb-3">
+                    <div class="position-relative">
+                      <%= link_to profile_path(user) do %>
+                        <img src="<%= user.avatar_url %>" 
+                             alt="<%= user.display_name %>" 
+                             class="rounded-circle border border-2 border-light shadow-sm"
+                             style="width: 50px; height: 50px; object-fit: cover;">
+                      <% end %>
+                      <% if user.online? %>
+                        <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle" 
+                              style="width: 12px; height: 12px;" 
+                              title="Online"></span>
+                      <% end %>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <%= link_to profile_path(user), class: "text-decoration-none" do %>
+                        <h5 class="card-title mb-1 text-dark"><%= user.display_name %></h5>
+                      <% end %>
+                      <p class="text-muted small mb-0">@<%= user.username %></p>
+                    </div>
+                  </div>
+
+                  <!-- User Info -->
+                  <div class="mb-3">
+                    <% if user.profile&.occupation.present? %>
+                      <p class="mb-2">
+                        <i class="fas fa-briefcase text-muted me-2"></i>
+                        <small><%= user.profile.occupation %></small>
+                      </p>
+                    <% end %>
+                    
+                    <% if user.profile&.display_location.present? %>
+                      <p class="mb-2">
+                        <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                        <small><%= user.profile.display_location %></small>
+                      </p>
+                    <% end %>
+
+                    <% if user.profile&.bio.present? %>
+                      <p class="card-text text-muted small mb-2">
+                        <%= user.profile.bio.truncate(80) %>
+                      </p>
+                    <% end %>
+                  </div>
+
+                  <!-- Skills Preview -->
+                  <% if user.profile&.skills&.any? %>
+                    <div class="mb-3">
+                      <div class="d-flex flex-wrap gap-1">
+                        <% user.profile.skills.first(3).each do |skill| %>
+                          <span class="badge bg-light text-dark border small"><%= skill %></span>
+                        <% end %>
+                        <% if user.profile.skills.length > 3 %>
+                          <span class="badge bg-secondary small">+<%= user.profile.skills.length - 3 %> more</span>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <!-- Footer -->
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                      <i class="fas fa-calendar-alt me-1"></i>
+                      Joined <%= user.created_at.strftime('%b %Y') %>
+                    </small>
+                    <%= link_to profile_path(user), class: "btn btn-sm btn-outline-primary" do %>
+                      <i class="fas fa-user me-1"></i>
+                      View Profile
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="d-flex justify-content-center">
+              <%= paginate @users, theme: 'twitter-bootstrap-4' %>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <!-- Empty State -->
+        <div class="text-center py-5">
+          <div class="mb-4">
+            <i class="fas fa-users fa-4x text-muted opacity-50"></i>
+          </div>
+          <h4 class="text-muted mb-3">
+            <% if params[:q].present? %>
+              No profiles found for "<%= params[:q] %>"
+            <% else %>
+              No public profiles found
+            <% end %>
+          </h4>
+          <p class="text-muted mb-4">
+            <% if params[:q].present? %>
+              Try adjusting your search terms or browse all profiles.
+            <% else %>
+              Be the first to make your profile public!
+            <% end %>
+          </p>
+          <div class="d-flex justify-content-center gap-2">
+            <% if params[:q].present? %>
+              <%= link_to profiles_path, class: "btn btn-primary" do %>
+                <i class="fas fa-users me-1"></i>
+                Browse All Profiles
+              <% end %>
+            <% end %>
+            <%= link_to edit_profile_path(current_user), class: "btn btn-outline-primary" do %>
+              <i class="fas fa-edit me-1"></i>
+              Edit My Profile
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+  .hover-lift {
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+  
+  .card {
+    transition: box-shadow 0.2s ease-in-out;
+  }
+  
+  .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  }
+</style>

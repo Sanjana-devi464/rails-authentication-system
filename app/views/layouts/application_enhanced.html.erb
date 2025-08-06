@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>
+      <%= content_for?(:title) ? "#{yield(:title)} - RoR Auth App" : "RoR Authentication App" %>
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="<%= content_for?(:description) ? yield(:description) : 'A modern Ruby on Rails authentication application with social features' %>">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Trix Editor CSS -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  </head>
+
+  <body class="bg-light">
+    <!-- Enhanced Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary sticky-top shadow-sm">
+      <div class="container-fluid">
+        <!-- Brand -->
+        <%= link_to root_path, class: "navbar-brand fw-bold d-flex align-items-center" do %>
+          <i class="fas fa-rocket me-2"></i>
+          <span>RoR Auth App</span>
+        <% end %>
+        
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Navigation Links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <!-- Main Navigation -->
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <%= link_to root_path, class: "nav-link #{'active' if current_page?(root_path)}" do %>
+                <i class="fas fa-home me-1"></i>
+                Home
+              <% end %>
+            </li>
+            <li class="nav-item">
+              <%= link_to posts_path, class: "nav-link #{'active' if current_page?(posts_path)}" do %>
+                <i class="fas fa-file-alt me-1"></i>
+                Posts
+              <% end %>
+            </li>
+            <% if user_signed_in? %>
+              <li class="nav-item">
+                <%= link_to dashboard_path, class: "nav-link #{'active' if current_page?(dashboard_path)}" do %>
+                  <i class="fas fa-tachometer-alt me-1"></i>
+                  Dashboard
+                <% end %>
+              </li>
+              <li class="nav-item">
+                <%= link_to new_post_path, class: "nav-link #{'active' if current_page?(new_post_path)}" do %>
+                  <i class="fas fa-pen-alt me-1"></i>
+                  Write
+                <% end %>
+              </li>
+            <% end %>
+            <li class="nav-item">
+              <%= link_to search_index_path, class: "nav-link #{'active' if current_page?(search_index_path)}" do %>
+                <i class="fas fa-search me-1"></i>
+                Search
+              <% end %>
+            </li>
+          </ul>
+          
+          <!-- User Navigation -->
+          <ul class="navbar-nav">
+            <% if user_signed_in? %>
+              <!-- Notifications -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown">
+                  <i class="fas fa-bell"></i>
+                  <% if current_user.notifications.unread.any? %>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      <%= current_user.notifications.unread.count %>
+                    </span>
+                  <% end %>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end notification-dropdown">
+                  <li class="dropdown-header d-flex justify-content-between align-items-center">
+                    <span>Notifications</span>
+                    <% if current_user.notifications.unread.any? %>
+                      <%= link_to notifications_path(mark_all_read: true), method: :patch, class: "btn btn-sm btn-outline-primary" do %>
+                        <i class="fas fa-check-double"></i>
+                      <% end %>
+                    <% end %>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  
+                  <% recent_notifications = current_user.notifications.recent.limit(5) %>
+                  <% if recent_notifications.any? %>
+                    <% recent_notifications.each do |notification| %>
+                      <li>
+                        <%= link_to notification_path(notification), class: "dropdown-item py-2 #{'bg-light' if notification.unread?}" do %>
+                          <div class="d-flex">
+                            <div class="notification-icon me-2">
+                              <i class="fas <%= notification.icon_class %> text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <div class="notification-title fw-medium"><%= notification.title %></div>
+                              <div class="notification-body text-muted small"><%= truncate(notification.body, length: 60) %></div>
+                              <div class="notification-time text-muted small">
+                                <i class="fas fa-clock me-1"></i>
+                                <%= time_ago_in_words(notification.created_at) %> ago
+                              </div>
+                            </div>
+                          </div>
+                        <% end %>
+                      </li>
+                    <% end %>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <%= link_to notifications_path, class: "dropdown-item text-center text-primary" do %>
+                        <i class="fas fa-eye me-1"></i>
+                        View All Notifications
+                      <% end %>
+                    </li>
+                  <% else %>
+                    <li class="dropdown-item-text text-center text-muted py-3">
+                      <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                      <br>No notifications yet
+                    </li>
+                  <% end %>
+                </ul>
+              </li>
+              
+              <!-- User Menu -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                  <%= image_tag current_user.avatar_url(:small), 
+                      class: "rounded-circle me-2", 
+                      style: "width: 24px; height: 24px;" %>
+                  <span class="d-none d-md-inline"><%= current_user.display_name %></span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end user-dropdown">
+                  <li class="dropdown-header">
+                    <div class="d-flex align-items-center">
+                      <%= image_tag current_user.avatar_url(:medium), 
+                          class: "rounded-circle me-2", 
+                          style: "width: 40px; height: 40px;" %>
+                      <div>
+                        <div class="fw-medium"><%= current_user.display_name %></div>
+                        <div class="text-muted small"><%= current_user.email %></div>
+                      </div>
+                    </div>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  
+                  <li>
+                    <%= link_to profile_path(current_user), class: "dropdown-item" do %>
+                      <i class="fas fa-user me-2"></i>
+                      My Profile
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to edit_user_registration_path, class: "dropdown-item" do %>
+                      <i class="fas fa-cog me-2"></i>
+                      Account Settings
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to my_posts_posts_path, class: "dropdown-item" do %>
+                      <i class="fas fa-file-alt me-2"></i>
+                      My Posts
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to user_activities_path, class: "dropdown-item" do %>
+                      <i class="fas fa-chart-line me-2"></i>
+                      My Activity
+                    <% end %>
+                  </li>
+                  
+                  <li><hr class="dropdown-divider"></li>
+                  
+                  <li>
+                    <%= link_to destroy_user_session_path, method: :delete, class: "dropdown-item text-danger" do %>
+                      <i class="fas fa-sign-out-alt me-2"></i>
+                      Sign Out
+                    <% end %>
+                  </li>
+                </ul>
+              </li>
+            <% else %>
+              <!-- Guest Navigation -->
+              <li class="nav-item">
+                <%= link_to new_user_session_path, class: "nav-link" do %>
+                  <i class="fas fa-sign-in-alt me-1"></i>
+                  Sign In
+                <% end %>
+              </li>
+              <li class="nav-item">
+                <%= link_to new_user_registration_path, class: "btn btn-outline-light btn-sm ms-2" do %>
+                  <i class="fas fa-user-plus me-1"></i>
+                  Sign Up
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <% if notice || alert %>
+      <div class="container-fluid mt-3">
+        <% if notice %>
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <%= notice %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% end %>
+        <% if alert %>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <%= alert %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="container-fluid py-4">
+        <%= yield %>
+      </div>
+    </main>
+
+    <!-- Enhanced Footer -->
+    <footer class="bg-dark text-light py-5 mt-5">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-4 mb-4">
+            <div class="footer-section">
+              <h5 class="mb-3">
+                <i class="fas fa-rocket me-2"></i>
+                RoR Auth App
+              </h5>
+              <p class="text-muted">
+                A modern Ruby on Rails application with authentication, 
+                social features, and a clean, responsive design.
+              </p>
+              <div class="social-links">
+                <a href="#" class="text-light me-3" title="Twitter">
+                  <i class="fab fa-twitter fa-lg"></i>
+                </a>
+                <a href="#" class="text-light me-3" title="GitHub">
+                  <i class="fab fa-github fa-lg"></i>
+                </a>
+                <a href="#" class="text-light me-3" title="LinkedIn">
+                  <i class="fab fa-linkedin fa-lg"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-lg-2 col-md-6 mb-4">
+            <div class="footer-section">
+              <h6 class="mb-3">Quick Links</h6>
+              <ul class="list-unstyled">
+                <li class="mb-2">
+                  <%= link_to "Home", root_path, class: "text-muted text-decoration-none" %>
+                </li>
+                <li class="mb-2">
+                  <%= link_to "Posts", posts_path, class: "text-muted text-decoration-none" %>
+                </li>
+                <li class="mb-2">
+                  <%= link_to "Search", search_index_path, class: "text-muted text-decoration-none" %>
+                </li>
+                <li class="mb-2">
+                  <a href="#" class="text-muted text-decoration-none">About</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="col-lg-2 col-md-6 mb-4">
+            <div class="footer-section">
+              <h6 class="mb-3">Community</h6>
+              <ul class="list-unstyled">
+                <% if user_signed_in? %>
+                  <li class="mb-2">
+                    <%= link_to "Dashboard", dashboard_path, class: "text-muted text-decoration-none" %>
+                  </li>
+                  <li class="mb-2">
+                    <%= link_to "My Profile", profile_path(current_user), class: "text-muted text-decoration-none" %>
+                  </li>
+                  <li class="mb-2">
+                    <%= link_to "Write Post", new_post_path, class: "text-muted text-decoration-none" %>
+                  </li>
+                <% else %>
+                  <li class="mb-2">
+                    <%= link_to "Join Community", new_user_registration_path, class: "text-muted text-decoration-none" %>
+                  </li>
+                  <li class="mb-2">
+                    <%= link_to "Sign In", new_user_session_path, class: "text-muted text-decoration-none" %>
+                  </li>
+                <% end %>
+                <li class="mb-2">
+                  <a href="#" class="text-muted text-decoration-none">Guidelines</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="col-lg-4 mb-4">
+            <div class="footer-section">
+              <h6 class="mb-3">Stay Connected</h6>
+              <p class="text-muted small">
+                Get the latest updates and news from our community.
+              </p>
+              <div class="newsletter-signup">
+                <div class="input-group">
+                  <input type="email" class="form-control" placeholder="Enter your email">
+                  <button class="btn btn-primary" type="button">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+                <small class="text-muted">We respect your privacy. Unsubscribe anytime.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <hr class="my-4 border-secondary">
+        
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <p class="text-muted small mb-0">
+              &copy; <%= Date.current.year %> RoR Auth App. All rights reserved.
+            </p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <div class="footer-stats text-muted small">
+              <span class="me-3">
+                <i class="fas fa-users me-1"></i>
+                <%= User.count %> members
+              </span>
+              <span class="me-3">
+                <i class="fas fa-file-alt me-1"></i>
+                <%= Post.published.count %> posts
+              </span>
+              <span>
+                <i class="fas fa-comments me-1"></i>
+                <%= Comment.count %> comments
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="btn btn-primary back-to-top" title="Back to top">
+      <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Trix Editor JS -->
+    <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
+
+    <!-- Custom Styles -->
+    <style>
+      :root {
+        --bs-primary: #0d6efd;
+        --bs-secondary: #6c757d;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+      }
+
+      .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--bs-primary) 0%, #6f42c1 100%);
+      }
+
+      .navbar-brand {
+        font-size: 1.5rem;
+        letter-spacing: -0.025em;
+      }
+
+      .navbar-nav .nav-link {
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border-radius: 0.375rem;
+        margin: 0 0.25rem;
+      }
+
+      .navbar-nav .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .navbar-nav .nav-link.active {
+        background-color: rgba(255, 255, 255, 0.2);
+        font-weight: 600;
+      }
+
+      .notification-dropdown {
+        width: 350px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .notification-dropdown .dropdown-item {
+        white-space: normal;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #eee;
+      }
+
+      .notification-dropdown .dropdown-item:last-child {
+        border-bottom: none;
+      }
+
+      .user-dropdown {
+        min-width: 250px;
+      }
+
+      .main-content {
+        min-height: calc(100vh - 200px);
+      }
+
+      .back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+      }
+
+      .back-to-top:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .footer-section h5,
+      .footer-section h6 {
+        color: #fff;
+        font-weight: 600;
+      }
+
+      .social-links a {
+        transition: all 0.3s ease;
+      }
+
+      .social-links a:hover {
+        color: var(--bs-primary) !important;
+        transform: translateY(-2px);
+      }
+
+      .newsletter-signup .form-control {
+        border-right: none;
+      }
+
+      .newsletter-signup .btn {
+        border-left: none;
+      }
+
+      .footer-stats span {
+        transition: all 0.3s ease;
+      }
+
+      .footer-stats span:hover {
+        color: var(--bs-primary) !important;
+      }
+
+      /* Smooth scrolling */
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* Loading animation */
+      .page-loading {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .page-loaded {
+        opacity: 1;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+    </style>
+
+    <!-- Custom JavaScript -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Page loading animation
+        document.body.classList.add('page-loaded');
+
+        // Back to top button
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', function() {
+          if (window.pageYOffset > 300) {
+            backToTopButton.style.display = 'block';
+          } else {
+            backToTopButton.style.display = 'none';
+          }
+        });
+
+        backToTopButton.addEventListener('click', function() {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        });
+
+        // Auto-hide flash messages
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+          setTimeout(function() {
+            if (alert && alert.classList.contains('show')) {
+              alert.classList.remove('show');
+              setTimeout(function() {
+                if (alert.parentNode) {
+                  alert.parentNode.removeChild(alert);
+                }
+              }, 150);
+            }
+          }, 5000);
+        });
+
+        // Enhance dropdown animations
+        const dropdowns = document.querySelectorAll('.dropdown-toggle');
+        dropdowns.forEach(function(dropdown) {
+          dropdown.addEventListener('shown.bs.dropdown', function() {
+            const menu = dropdown.nextElementSibling;
+            if (menu) {
+              menu.style.opacity = '0';
+              menu.style.transform = 'translateY(-10px)';
+              setTimeout(function() {
+                menu.style.transition = 'all 0.3s ease';
+                menu.style.opacity = '1';
+                menu.style.transform = 'translateY(0)';
+              }, 10);
+            }
+          });
+        });
+
+        // Newsletter signup (placeholder functionality)
+        const newsletterForm = document.querySelector('.newsletter-signup');
+        if (newsletterForm) {
+          const submitBtn = newsletterForm.querySelector('button');
+          const emailInput = newsletterForm.querySelector('input[type="email"]');
+          
+          submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (emailInput.value) {
+              submitBtn.innerHTML = '<i class="fas fa-check"></i>';
+              submitBtn.classList.remove('btn-primary');
+              submitBtn.classList.add('btn-success');
+              emailInput.value = '';
+              
+              setTimeout(function() {
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-primary');
+              }, 2000);
+            }
+          });
+        }
+      });
+
+      // Global notification system (can be used by other scripts)
+      window.showNotification = function(message, type = 'info') {
+        const alertClass = type === 'error' ? 'alert-danger' : 
+                          type === 'success' ? 'alert-success' : 
+                          type === 'warning' ? 'alert-warning' : 'alert-info';
+        
+        const alertHtml = `
+          <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 
+                               type === 'success' ? 'check-circle' : 
+                               type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        `;
+        
+        const container = document.querySelector('.container-fluid');
+        if (container) {
+          const alertDiv = document.createElement('div');
+          alertDiv.innerHTML = alertHtml;
+          container.insertBefore(alertDiv, container.firstChild);
+          
+          // Auto-hide after 5 seconds
+          setTimeout(function() {
+            const alert = alertDiv.querySelector('.alert');
+            if (alert && alert.classList.contains('show')) {
+              alert.classList.remove('show');
+              setTimeout(function() {
+                if (alertDiv.parentNode) {
+                  alertDiv.parentNode.removeChild(alertDiv);
+                }
+              }, 150);
+            }
+          }, 5000);
+        }
+      };
+    </script>
+  </body>
+</html>

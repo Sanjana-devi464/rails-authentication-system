@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trix Editor Test</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
+  <script src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
+</head>
+<body>
+  <h1>Simple Trix Editor Test</h1>
+  
+  <form>
+    <input id="trix-test" type="hidden" name="content">
+    <trix-editor input="trix-test" placeholder="Type something here..."></trix-editor>
+  </form>
+  
+  <script>
+    document.addEventListener('trix-change', function(event) {
+      console.log('Trix content changed:', event.target.innerHTML)
+    })
+    
+    document.addEventListener('trix-initialize', function(event) {
+      console.log('Trix initialized successfully')
+    })
+  </script>
+</body>
+</html>

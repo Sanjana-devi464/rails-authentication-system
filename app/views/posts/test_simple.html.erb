@@ -1,0 +1,89 @@
+<% content_for :title, "Rich Text Editor Test" %>
+
+<div class="container py-4">
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Test Rich Text Editor</h5>
+        </div>
+        <div class="card-body">
+          <%= form_with model: @post, local: true do |form| %>
+            <div class="mb-3">
+              <%= form.label :title, "Title", class: "form-label" %>
+              <%= form.text_field :title, class: "form-control", placeholder: "Enter title" %>
+            </div>
+            
+            <div class="mb-3">
+              <%= form.label :body, "Content", class: "form-label" %>
+              <%= form.hidden_field :body, id: "test_body" %>
+              <trix-editor 
+                input="test_body" 
+                placeholder="Type your content here..."
+                class="border rounded p-3"
+                style="min-height: 200px;">
+              </trix-editor>
+            </div>
+            
+            <div class="mb-3">
+              <small class="text-muted">
+                <span id="stats">0 characters | 0 words</span>
+              </small>
+            </div>
+            
+            <div class="d-flex gap-2">
+              <%= form.submit "Save Draft", class: "btn btn-outline-primary", name: "draft" %>
+              <%= form.submit "Publish", class: "btn btn-primary", name: "publish" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const trixEditor = document.querySelector('trix-editor');
+  const hiddenField = document.getElementById('test_body');
+  const statsElement = document.getElementById('stats');
+  
+  console.log('Test page loaded');
+  console.log('Trix editor:', trixEditor);
+  console.log('Hidden field:', hiddenField);
+  
+  if (trixEditor) {
+    trixEditor.addEventListener('trix-initialize', function() {
+      console.log('Trix initialized successfully');
+    });
+    
+    trixEditor.addEventListener('trix-change', function() {
+      console.log('Content changed');
+      
+      // Sync to hidden field
+      if (hiddenField) {
+        hiddenField.value = trixEditor.innerHTML;
+        console.log('Synced content:', hiddenField.value.substring(0, 100) + '...');
+      }
+      
+      // Update stats
+      if (trixEditor.editor && statsElement) {
+        const text = trixEditor.editor.getDocument().toString();
+        const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+        const charCount = text.length;
+        statsElement.textContent = `${charCount} characters | ${wordCount} words`;
+      }
+    });
+    
+    trixEditor.addEventListener('trix-focus', function() {
+      console.log('Editor focused');
+    });
+    
+    trixEditor.addEventListener('trix-blur', function() {
+      console.log('Editor blurred');
+    });
+  } else {
+    console.error('No Trix editor found!');
+  }
+});
+</script>

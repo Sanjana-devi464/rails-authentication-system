@@ -1,0 +1,62 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <h2><i class="bi bi-activity"></i> My Activities</h2>
+      
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Total Activities</h5>
+              <h3 class="text-primary"><%= @total_activities || current_user.user_activities.count %></h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <%= link_to analytics_user_activities_path, class: "btn btn-outline-primary" do %>
+            <i class="bi bi-bar-chart"></i> View Analytics
+          <% end %>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="bi bi-list"></i> Recent Activities</h5>
+        </div>
+        <div class="card-body">
+          <% if @user_activities.any? %>
+            <% @user_activities.each do |activity| %>
+              <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                <div class="me-3">
+                  <i class="bi bi-circle-fill text-primary" style="font-size: 0.5rem;"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1"><%= activity.description %></h6>
+                  <small class="text-muted"><%= time_ago_in_words(activity.created_at) %> ago</small>
+                  <% if activity.city.present? %>
+                    <small class="text-muted"> • <%= activity.city %></small>
+                  <% end %>
+                </div>
+                <div>
+                  <%= link_to user_activity_path(activity), class: "btn btn-sm btn-outline-secondary" do %>
+                    <i class="bi bi-eye"></i>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+            
+            <% if respond_to?(:paginate) %>
+              <%= paginate @user_activities %>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-5">
+              <i class="bi bi-activity" style="font-size: 3rem;"></i>
+              <h5>No activities yet</h5>
+              <p>Your activities will appear here as you use the application.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

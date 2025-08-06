@@ -1,0 +1,263 @@
+<% content_for :title, "Find Users" %>
+
+<div class="users-search-container">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h3 mb-1">Find Users</h1>
+          <p class="text-muted mb-0">Search for other users on the platform</p>
+        </div>
+        <%= link_to dashboard_path, class: "btn btn-outline-secondary" do %>
+          <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Form -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body">
+          <%= form_with url: search_users_path, method: :get, local: true, class: "d-flex" do |form| %>
+            <div class="input-group">
+              <%= form.text_field :q, 
+                  value: @query, 
+                  placeholder: "Search by name, username, or email...", 
+                  class: "form-control form-control-lg",
+                  autocomplete: "off" %>
+              <button class="btn btn-primary btn-lg" type="submit">
+                <i class="fas fa-search me-2"></i>Search
+              </button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Results -->
+  <div class="row">
+    <div class="col-12">
+      <% if @query.present? %>
+        <% if @users.any? %>
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-users me-2"></i>
+                Search Results for "<%= @query %>" (<%= @users.total_count %> users found)
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="list-group list-group-flush">
+                <% @users.each do |user| %>
+                  <div class="list-group-item list-group-item-action">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <%= image_tag user.avatar_url(:medium), 
+                            class: "rounded-circle", 
+                            style: "width: 50px; height: 50px; object-fit: cover;" %>
+                      </div>
+                      <div class="col">
+                        <div class="d-flex justify-content-between align-items-start">
+                          <div>
+                            <h6 class="mb-1 fw-semibold">
+                              <%= user.display_name %>
+                              <% if user.profile&.public? %>
+                                <i class="fas fa-globe text-success ms-1" title="Public Profile"></i>
+                              <% else %>
+                                <i class="fas fa-lock text-muted ms-1" title="Private Profile"></i>
+                              <% end %>
+                            </h6>
+                            
+                            <% if user.username.present? %>
+                              <p class="mb-1 text-muted small">@<%= user.username %></p>
+                            <% end %>
+                            
+                            <% if user.profile&.bio.present? %>
+                              <p class="mb-1 text-muted small">
+                                <%= truncate(user.profile.bio, length: 100) %>
+                              </p>
+                            <% end %>
+                            
+                            <div class="d-flex align-items-center text-muted small">
+                              <% if user.profile&.location.present? %>
+                                <span class="me-3">
+                                  <i class="fas fa-map-marker-alt me-1"></i>
+                                  <%= user.profile.location %>
+                                </span>
+                              <% end %>
+                              
+                              <% if user.profile&.occupation.present? %>
+                                <span class="me-3">
+                                  <i class="fas fa-briefcase me-1"></i>
+                                  <%= user.profile.occupation %>
+                                </span>
+                              <% end %>
+                              
+                              <span>
+                                <i class="fas fa-calendar me-1"></i>
+                                Joined <%= user.created_at.strftime('%b %Y') %>
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div class="text-end">
+                            <% if user != current_user %>
+                              <%= link_to user_profile_path(user.username || user.id), 
+                                  class: "btn btn-sm btn-outline-primary mb-2" do %>
+                                <i class="fas fa-user me-1"></i>View Profile
+                              <% end %>
+                              
+                              <% if user.profile&.show_email? %>
+                                <div class="small text-muted">
+                                  <i class="fas fa-envelope me-1"></i>
+                                  <%= mail_to user.email, user.email, class: "text-decoration-none" %>
+                                </div>
+                              <% end %>
+                              
+                              <% if user.online? %>
+                                <div class="small text-success mt-1">
+                                  <i class="fas fa-circle me-1"></i>Online
+                                </div>
+                              <% elsif user.last_seen_at.present? %>
+                                <div class="small text-muted mt-1">
+                                  <i class="fas fa-clock me-1"></i>
+                                  Last seen <%= time_ago_in_words(user.last_seen_at) %> ago
+                                </div>
+                              <% end %>
+                            <% else %>
+                              <div class="small text-muted">
+                                <i class="fas fa-user-check me-1"></i>This is you
+                              </div>
+                            <% end %>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="d-flex justify-content-center mt-4">
+            <%= paginate @users, theme: 'twitter-bootstrap-4' %>
+          </div>
+
+        <% else %>
+          <!-- No Results -->
+          <div class="card">
+            <div class="card-body text-center py-5">
+              <div class="mb-4">
+                <i class="fas fa-search fa-4x text-muted"></i>
+              </div>
+              <h4 class="text-muted mb-3">No users found</h4>
+              <p class="text-muted mb-4">
+                We couldn't find any users matching "<%= @query %>". 
+                Try searching with different keywords or check your spelling.
+              </p>
+              <div class="row justify-content-center">
+                <div class="col-md-6">
+                  <%= form_with url: search_users_path, method: :get, local: true do |form| %>
+                    <div class="input-group">
+                      <%= form.text_field :q, 
+                          placeholder: "Try a different search...", 
+                          class: "form-control",
+                          autocomplete: "off" %>
+                      <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                      </button>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <!-- Welcome/Instructions -->
+        <div class="card">
+          <div class="card-body text-center py-5">
+            <div class="mb-4">
+              <i class="fas fa-users fa-4x text-primary"></i>
+            </div>
+            <h4 class="mb-3">Find Other Users</h4>
+            <p class="text-muted mb-4">
+              Search for other users by their name, username, or email address. 
+              Connect with people who share your interests!
+            </p>
+            
+            <div class="row justify-content-center mb-4">
+              <div class="col-md-8">
+                <%= form_with url: search_users_path, method: :get, local: true do |form| %>
+                  <div class="input-group input-group-lg">
+                    <%= form.text_field :q, 
+                        placeholder: "Search by name, username, or email...", 
+                        class: "form-control",
+                        autocomplete: "off" %>
+                    <button class="btn btn-primary" type="submit">
+                      <i class="fas fa-search me-2"></i>Search
+                    </button>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+            
+            <div class="row text-start">
+              <div class="col-md-6">
+                <h6 class="text-primary">
+                  <i class="fas fa-lightbulb me-2"></i>Search Tips
+                </h6>
+                <ul class="list-unstyled small text-muted">
+                  <li>• Search by first name or last name</li>
+                  <li>• Use @ to search by username</li>
+                  <li>• Search by email address</li>
+                  <li>• Use partial words to get more results</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-success">
+                  <i class="fas fa-shield-alt me-2"></i>Privacy
+                </h6>
+                <ul class="list-unstyled small text-muted">
+                  <li>• Only public profiles are shown</li>
+                  <li>• Email addresses are only visible if shared</li>
+                  <li>• You control your own privacy settings</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+.users-search-container .list-group-item {
+  transition: all 0.2s ease;
+}
+
+.users-search-container .list-group-item:hover {
+  background-color: var(--bs-light);
+}
+
+.users-search-container .input-group-lg .form-control,
+.users-search-container .input-group-lg .btn {
+  border-radius: 0.5rem;
+}
+
+.users-search-container .input-group-lg .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.users-search-container .input-group-lg .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+</style>

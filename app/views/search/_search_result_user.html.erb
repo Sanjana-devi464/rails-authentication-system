@@ -1,0 +1,75 @@
+<!-- Search Result User Card -->
+<div class="card border-0 shadow-sm search-result-card h-100" onclick="window.location.href='<%= user_profile_path(user.username) %>'">
+  <div class="card-body text-center">
+    <!-- User Avatar -->
+    <div class="mb-3">
+      <%= image_tag user.avatar_url(:medium), 
+          class: "rounded-circle", 
+          style: "width: 80px; height: 80px;" %>
+      <% if user.online? %>
+        <span class="position-absolute bg-success rounded-circle border border-2 border-white" 
+              style="width: 16px; height: 16px; margin-left: -20px; margin-top: 60px;">
+        </span>
+      <% end %>
+    </div>
+
+    <!-- User Info -->
+    <h5 class="card-title mb-1">
+      <%= highlight(user.display_name, query, highlighter: '<span class="highlight">\1</span>').html_safe %>
+    </h5>
+    
+    <% if user.profile&.occupation.present? %>
+      <p class="text-muted mb-2">
+        <%= user.profile.occupation %>
+        <% if user.profile.company.present? %>
+          at <%= user.profile.company %>
+        <% end %>
+      </p>
+    <% end %>
+
+    <% if user.bio.present? %>
+      <p class="card-text text-muted small mb-3">
+        <%= highlight(truncate(user.bio, length: 80), query, highlighter: '<span class="highlight">\1</span>').html_safe %>
+      </p>
+    <% end %>
+
+    <!-- User Stats -->
+    <div class="row text-center mb-3">
+      <div class="col-4">
+        <div class="text-primary">
+          <strong><%= user.posts.published.count %></strong>
+          <br><small class="text-muted">Posts</small>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="text-success">
+          <strong><%= user.comments.count %></strong>
+          <br><small class="text-muted">Comments</small>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="text-info">
+          <strong><%= user.profile&.profile_views || 0 %></strong>
+          <br><small class="text-muted">Views</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Badges -->
+    <div class="mb-2">
+      <span class="badge bg-primary">User</span>
+      <% if user.online? %>
+        <span class="badge bg-success">Online</span>
+      <% end %>
+      <% if user.created_at > 1.month.ago %>
+        <span class="badge bg-info">New</span>
+      <% end %>
+    </div>
+
+    <!-- Join Date -->
+    <small class="text-muted">
+      <i class="fas fa-calendar-alt me-1"></i>
+      Joined <%= user.created_at.strftime('%B %Y') %>
+    </small>
+  </div>
+</div>

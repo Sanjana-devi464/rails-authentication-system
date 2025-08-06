@@ -1,0 +1,74 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <h2><i class="bi bi-search"></i> Search</h2>
+      
+      <%= form_tag search_path, method: :get, local: true, class: "mb-4" do %>
+        <div class="input-group">
+          <%= text_field_tag :q, params[:q], placeholder: "Search users, posts...", class: "form-control" %>
+          <button class="btn btn-primary" type="submit">
+            <i class="bi bi-search"></i> Search
+          </button>
+        </div>
+      <% end %>
+      
+      <% if params[:q].present? %>
+        <h5>Search Results for "<%= params[:q] %>"</h5>
+        
+        <!-- Users Results -->
+        <% if @users.any? %>
+          <div class="card mb-4">
+            <div class="card-header">
+              <h6><i class="bi bi-people"></i> Users (<%= @users.count %>)</h6>
+            </div>
+            <div class="card-body">
+              <% @users.each do |user| %>
+                <div class="d-flex align-items-center mb-3">
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1"><%= link_to user.full_name, profile_path(user.username), class: "text-decoration-none" %></h6>
+                    <small class="text-muted">@<%= user.username %></small>
+                    <% if user.profile&.bio.present? %>
+                      <p class="mb-0"><%= truncate(user.profile.bio, length: 100) %></p>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+        
+        <!-- Posts Results -->
+        <% if @posts.any? %>
+          <div class="card">
+            <div class="card-header">
+              <h6><i class="bi bi-file-post"></i> Posts (<%= @posts.count %>)</h6>
+            </div>
+            <div class="card-body">
+              <% @posts.each do |post| %>
+                <div class="mb-3">
+                  <h6><%= link_to post.title, post_path(post), class: "text-decoration-none" %></h6>
+                  <small class="text-muted">by <%= post.user.full_name %> on <%= post.created_at.strftime("%B %d, %Y") %></small>
+                  <p class="mt-1"><%= truncate(strip_tags(post.body), length: 150) %></p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+        
+        <% if @users.empty? && @posts.empty? %>
+          <div class="text-center text-muted mt-5">
+            <i class="bi bi-search" style="font-size: 3rem;"></i>
+            <h5>No results found</h5>
+            <p>Try different keywords or check your spelling.</p>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center text-muted mt-5">
+          <i class="bi bi-search" style="font-size: 3rem;"></i>
+          <h5>Start searching</h5>
+          <p>Enter keywords to search for users and posts.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

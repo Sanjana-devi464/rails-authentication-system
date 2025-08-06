@@ -1,0 +1,51 @@
+<% content_for :title, "Confirm Delete - #{@post.title}" %>
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Confirm Delete
+          </h4>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-warning" role="alert">
+            <h5 class="alert-heading">
+              <i class="fas fa-warning me-2"></i>
+              Are you sure you want to delete this post?
+            </h5>
+            <p class="mb-0">This action cannot be undone. The post and all its comments will be permanently deleted.</p>
+          </div>
+          
+          <div class="post-preview p-3 bg-light rounded mb-4">
+            <h5 class="text-truncate"><%= @post.title %></h5>
+            <p class="text-muted mb-2">
+              <i class="fas fa-user me-1"></i> By <%= @post.user.display_name %>
+              <span class="mx-2">•</span>
+              <i class="fas fa-calendar me-1"></i> <%= @post.formatted_created_at %>
+            </p>
+            <p class="text-muted mb-0">
+              <%= truncate(strip_tags(@post.body), length: 150) %>
+            </p>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <div>
+              <%= link_to "Cancel", @post, class: "btn btn-secondary" %>
+              <%= link_to "Back to My Posts", my_posts_posts_path, class: "btn btn-outline-secondary ms-2" %>
+            </div>
+            <div>
+              <%= form_with url: post_path(@post), method: :delete, local: true, class: "d-inline" do |form| %>
+                <%= form.submit "Delete Post", 
+                      class: "btn btn-danger",
+                      data: { disable_with: "Deleting..." } %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,547 @@
+<!-- Enhanced Home Page -->
+<% content_for :title, "Welcome to RoR Auth App" %>
+
+<!-- Hero Section -->
+<div class="hero-section bg-gradient-primary text-white py-5 rounded mb-5">
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <div class="hero-content">
+          <h1 class="display-4 fw-bold mb-4">
+            Welcome to Our 
+            <span class="text-warning">Community</span>
+          </h1>
+          <p class="lead mb-4">
+            Join thousands of writers, thinkers, and creators sharing their stories, 
+            insights, and expertise. Discover amazing content and connect with like-minded people.
+          </p>
+          
+          <div class="hero-actions">
+            <% if user_signed_in? %>
+              <%= link_to dashboard_path, class: "btn btn-light btn-lg me-3" do %>
+                <i class="fas fa-tachometer-alt me-2"></i>
+                Go to Dashboard
+              <% end %>
+            <% else %>
+              <%= link_to new_user_registration_path, class: "btn btn-light btn-lg me-3" do %>
+                <i class="fas fa-user-plus me-2"></i>
+                Join Our Community
+              <% end %>
+              <%= link_to new_user_session_path, class: "btn btn-outline-light btn-lg" do %>
+                <i class="fas fa-sign-in-alt me-2"></i>
+                Sign In
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-6">
+        <div class="hero-stats text-center">
+          <div class="row">
+            <div class="col-4">
+              <div class="stat-card bg-white bg-opacity-20 rounded p-4 mb-3">
+                <i class="fas fa-users fa-2x mb-2"></i>
+                <h3 class="h4 mb-1"><%= User.count %></h3>
+                <small>Community Members</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat-card bg-white bg-opacity-20 rounded p-4 mb-3">
+                <i class="fas fa-file-alt fa-2x mb-2"></i>
+                <h3 class="h4 mb-1"><%= Post.published.count %></h3>
+                <small>Published Posts</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat-card bg-white bg-opacity-20 rounded p-4 mb-3">
+                <i class="fas fa-comments fa-2x mb-2"></i>
+                <h3 class="h4 mb-1"><%= Comment.count %></h3>
+                <small>Comments Made</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Featured Content Section -->
+<div class="row mb-5">
+  <div class="col-12">
+    <div class="section-header text-center mb-5">
+      <h2 class="h3 mb-3">
+        <i class="fas fa-star text-warning me-2"></i>
+        Featured Content
+      </h2>
+      <p class="text-muted lead">
+        Discover the most popular and engaging posts from our community
+      </p>
+    </div>
+    
+    <% if @featured_posts.any? %>
+      <div class="row">
+        <% @featured_posts.each_with_index do |post, index| %>
+          <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm hover-lift h-100 featured-post-card">
+              <div class="card-header border-0 bg-gradient-primary text-white">
+                <div class="d-flex align-items-center">
+                  <div class="featured-badge me-2">
+                    <i class="fas fa-crown"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-0">Featured Post #<%= index + 1 %></h6>
+                    <small class="opacity-75">
+                      by <%= post.user.display_name %>
+                    </small>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title mb-3">
+                  <%= link_to post.title, post_path(post), 
+                      class: "text-decoration-none text-dark hover-primary" %>
+                </h5>
+                
+                <p class="card-text text-muted flex-grow-1 mb-3">
+                  <%= truncate(strip_tags(post.body), length: 120) %>
+                </p>
+                
+                <div class="post-meta d-flex justify-content-between align-items-center text-muted small mb-3">
+                  <span>
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    <%= time_ago_in_words(post.created_at) %> ago
+                  </span>
+                  <span>
+                    <i class="fas fa-comments me-1"></i>
+                    <%= post.comments.count %>
+                  </span>
+                  <span>
+                    <i class="fas fa-clock me-1"></i>
+                    <%= post.reading_time %>
+                  </span>
+                </div>
+                
+                <div class="d-grid">
+                  <%= link_to post_path(post), class: "btn btn-primary" do %>
+                    <i class="fas fa-book-open me-1"></i>
+                    Read More
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-5">
+        <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+        <h5 class="text-muted">No featured posts yet</h5>
+        <p class="text-muted">Be the first to create amazing content!</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Recent Posts Section -->
+<div class="row mb-5">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h3 class="h4 mb-1">
+          <i class="fas fa-clock text-primary me-2"></i>
+          Latest Posts
+        </h3>
+        <p class="text-muted mb-0">Fresh content from our community</p>
+      </div>
+      <%= link_to posts_path, class: "btn btn-outline-primary" do %>
+        <i class="fas fa-arrow-right me-1"></i>
+        View All Posts
+      <% end %>
+    </div>
+    
+    <% if @recent_posts.any? %>
+      <div class="row">
+        <% @recent_posts.each do |post| %>
+          <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm hover-lift h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <%= image_tag post.user.avatar_url(:small), 
+                      class: "rounded-circle me-2", 
+                      style: "width: 30px; height: 30px;" %>
+                  <div>
+                    <h6 class="mb-0 small"><%= post.user.display_name %></h6>
+                    <small class="text-muted"><%= time_ago_in_words(post.created_at) %> ago</small>
+                  </div>
+                </div>
+                
+                <h6 class="card-title">
+                  <%= link_to post.title, post_path(post), 
+                      class: "text-decoration-none text-dark" %>
+                </h6>
+                
+                <p class="card-text text-muted small">
+                  <%= truncate(strip_tags(post.body), length: 80) %>
+                </p>
+                
+                <div class="d-flex justify-content-between align-items-center text-muted small">
+                  <span>
+                    <i class="fas fa-comments me-1"></i>
+                    <%= post.comments.count %>
+                  </span>
+                  <span>
+                    <i class="fas fa-clock me-1"></i>
+                    <%= post.reading_time %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-5">
+        <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+        <h5 class="text-muted">No posts yet</h5>
+        <p class="text-muted">Be the first to share your thoughts!</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Community Highlights -->
+<div class="row mb-5">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-users text-success me-2"></i>
+          Community Highlights
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="highlight-item mb-4">
+              <div class="d-flex align-items-center mb-2">
+                <div class="highlight-icon bg-primary text-white rounded-circle me-3">
+                  <i class="fas fa-trophy"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0">Top Writer</h6>
+                  <small class="text-muted">Most posts this month</small>
+                </div>
+              </div>
+              <% if @top_writer %>
+                <div class="d-flex align-items-center">
+                  <%= image_tag @top_writer.avatar_url(:small), 
+                      class: "rounded-circle me-2", 
+                      style: "width: 30px; height: 30px;" %>
+                  <div>
+                    <strong><%= @top_writer.display_name %></strong>
+                    <br><small class="text-muted"><%= @top_writer.posts.where(created_at: 1.month.ago..Time.current).count %> posts</small>
+                  </div>
+                </div>
+              <% else %>
+                <p class="text-muted small mb-0">No writers yet</p>
+              <% end %>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="highlight-item mb-4">
+              <div class="d-flex align-items-center mb-2">
+                <div class="highlight-icon bg-success text-white rounded-circle me-3">
+                  <i class="fas fa-comments"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0">Most Active</h6>
+                  <small class="text-muted">Most comments this month</small>
+                </div>
+              </div>
+              <% if @most_active_commenter %>
+                <div class="d-flex align-items-center">
+                  <%= image_tag @most_active_commenter.avatar_url(:small), 
+                      class: "rounded-circle me-2", 
+                      style: "width: 30px; height: 30px;" %>
+                  <div>
+                    <strong><%= @most_active_commenter.display_name %></strong>
+                    <br><small class="text-muted"><%= @most_active_commenter.comments.where(created_at: 1.month.ago..Time.current).count %> comments</small>
+                  </div>
+                </div>
+              <% else %>
+                <p class="text-muted small mb-0">No active commenters yet</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-line text-info me-2"></i>
+          Platform Stats
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="stats-list">
+          <div class="stat-item d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-users text-primary me-2"></i>
+              <span>Total Members</span>
+            </div>
+            <strong class="text-primary"><%= User.count %></strong>
+          </div>
+          
+          <div class="stat-item d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-file-alt text-success me-2"></i>
+              <span>Published Posts</span>
+            </div>
+            <strong class="text-success"><%= Post.published.count %></strong>
+          </div>
+          
+          <div class="stat-item d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-comments text-info me-2"></i>
+              <span>Total Comments</span>
+            </div>
+            <strong class="text-info"><%= Comment.count %></strong>
+          </div>
+          
+          <div class="stat-item d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-calendar-alt text-warning me-2"></i>
+              <span>This Week</span>
+            </div>
+            <strong class="text-warning"><%= Post.where(created_at: 1.week.ago..Time.current).count %> posts</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Call to Action Section -->
+<% unless user_signed_in? %>
+  <div class="cta-section bg-light rounded py-5 mb-5">
+    <div class="container-fluid">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <h3 class="h4 mb-3">
+            <i class="fas fa-rocket text-primary me-2"></i>
+            Ready to Join Our Community?
+          </h3>
+          <p class="text-muted mb-4">
+            Start sharing your stories, connect with other writers, and be part of our growing community. 
+            It's free and takes less than a minute to get started!
+          </p>
+          
+          <div class="cta-features">
+            <div class="row">
+              <div class="col-md-4 mb-2">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-check-circle text-success me-2"></i>
+                  <span>Write & publish posts</span>
+                </div>
+              </div>
+              <div class="col-md-4 mb-2">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-check-circle text-success me-2"></i>
+                  <span>Connect with writers</span>
+                </div>
+              </div>
+              <div class="col-md-4 mb-2">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-check-circle text-success me-2"></i>
+                  <span>Build your audience</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 text-center">
+          <div class="cta-actions">
+            <%= link_to new_user_registration_path, class: "btn btn-primary btn-lg mb-3 w-100" do %>
+              <i class="fas fa-user-plus me-2"></i>
+              Create Free Account
+            <% end %>
+            <p class="text-muted small mb-0">
+              Already have an account? 
+              <%= link_to "Sign in here", new_user_session_path, class: "text-primary" %>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<!-- Custom Styles -->
+<style>
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, #6f42c1 100%);
+  }
+
+  .hero-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%), 
+                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%);
+    background-size: 30px 30px;
+    opacity: 0.3;
+  }
+
+  .stat-card {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .hover-lift {
+    transition: all 0.3s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .hover-primary:hover {
+    color: var(--bs-primary) !important;
+  }
+
+  .featured-post-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .featured-post-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+    z-index: 1;
+  }
+
+  .featured-badge {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .highlight-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .section-header {
+    position: relative;
+  }
+
+  .section-header::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--bs-primary), var(--bs-secondary));
+    border-radius: 3px;
+  }
+
+  .cta-section {
+    border: 2px dashed #dee2e6;
+  }
+
+  .hero-actions .btn {
+    transition: all 0.3s ease;
+  }
+
+  .hero-actions .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+  }
+</style>
+
+<!-- JavaScript for Dynamic Features -->
+<script>
+  // Animate statistics on scroll
+  function animateStats() {
+    const stats = document.querySelectorAll('.stat-card h3');
+    stats.forEach(stat => {
+      const finalValue = parseInt(stat.textContent);
+      let currentValue = 0;
+      const increment = Math.ceil(finalValue / 50);
+      
+      const timer = setInterval(() => {
+        currentValue += increment;
+        if (currentValue >= finalValue) {
+          currentValue = finalValue;
+          clearInterval(timer);
+        }
+        stat.textContent = currentValue;
+      }, 50);
+    });
+  }
+
+  // Initialize animations when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add entrance animations
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      
+      setTimeout(() => {
+        card.style.transition = 'all 0.6s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 100);
+    });
+
+    // Animate stats after a delay
+    setTimeout(animateStats, 1000);
+  });
+
+  // Parallax effect for hero section
+  window.addEventListener('scroll', function() {
+    const scrolled = window.pageYOffset;
+    const hero = document.querySelector('.hero-section');
+    if (hero) {
+      hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+    }
+  });
+</script>

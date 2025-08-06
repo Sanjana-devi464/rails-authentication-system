@@ -1,0 +1,369 @@
+<%# New Post Page %>
+<% content_for :title, "Create New Post" %>
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h2 text-dark mb-1">
+            <i class="fas fa-pen me-2 text-primary"></i>
+            Create New Post
+          </h1>
+          <p class="text-muted mb-0">Share your thoughts with the community</p>
+        </div>
+        <%= link_to posts_path, class: "btn btn-outline-secondary" do %>
+          <i class="fas fa-arrow-left me-1"></i>
+          Back to Posts
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="row">
+    <div class="col-12 col-lg-8 mx-auto">
+      
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <%= form_with model: @post, local: true, class: "needs-validation", novalidate: true do |form| %>
+            
+            <!-- Error Messages -->
+            <% if @post.errors.any? %>
+              <div class="alert alert-danger mb-4" role="alert">
+                <h6 class="alert-heading mb-2">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  Please fix the following errors:
+                </h6>
+                <ul class="mb-0">
+                  <% @post.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <!-- Title Field -->
+            <div class="mb-4">
+              <%= form.label :title, class: "form-label fw-semibold" do %>
+                <i class="fas fa-heading me-1"></i>
+                Post Title
+              <% end %>
+              <%= form.text_field :title, 
+                    class: "form-control form-control-lg #{'is-invalid' if @post.errors[:title].any?}",
+                    placeholder: "Enter an engaging title for your post...",
+                    maxlength: 100,
+                    required: true %>
+              <div class="form-text">
+                <small class="text-muted">
+                  <span id="title-count">0</span>/100 characters
+                </small>
+              </div>
+              <% if @post.errors[:title].any? %>
+                <div class="invalid-feedback">
+                  <%= @post.errors[:title].first %>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Body Field -->
+            <div class="mb-4">
+              <%= form.label :body, class: "form-label fw-semibold" do %>
+                <i class="fas fa-align-left me-1"></i>
+                Content
+              <% end %>
+              
+              <!-- Rich Text Editor Container -->
+              <div class="rich-text-container #{'is-invalid' if @post.errors[:body].any?}">
+                <%= form.hidden_field :body, id: "post_body_hidden" %>
+                <trix-editor 
+                  input="post_body_hidden"
+                  placeholder="Write your post content here... Share your thoughts, experiences, or knowledge with the community. Use the toolbar above to format your text with bold, italic, links, lists, and more!"
+                  class="trix-content"
+                  style="border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 1rem; min-height: 300px;">
+                </trix-editor>
+              </div>
+              
+              <div class="form-text">
+                <small class="text-muted">
+                  <i class="fas fa-info-circle me-1"></i>
+                  <span id="content-stats">0 characters | 0 words | 0 min read</span>
+                </small>
+                <small class="text-muted d-block mt-1">
+                  💡 <strong>Formatting Tips:</strong> Use <kbd>Ctrl+B</kbd> for bold, <kbd>Ctrl+I</kbd> for italic, <kbd>Ctrl+U</kbd> for underline, <kbd>Ctrl+K</kbd> for links
+                </small>
+              </div>
+              
+              <% if @post.errors[:body].any? %>
+                <div class="invalid-feedback d-block">
+                  <%= @post.errors[:body].first %>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Status Field -->
+            <div class="mb-4">
+              <%= form.label :status, class: "form-label fw-semibold" do %>
+                <i class="fas fa-eye me-1"></i>
+                Publication Status
+              <% end %>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-check form-check-card p-3 border rounded">
+                    <%= form.radio_button :status, "draft", 
+                          class: "form-check-input", 
+                          checked: true,
+                          id: "status_draft" %>
+                    <%= form.label :status_draft, class: "form-check-label w-100" do %>
+                      <div class="d-flex align-items-center">
+                        <i class="fas fa-file-alt me-2 text-secondary"></i>
+                        <div>
+                          <div class="fw-semibold">Save as Draft</div>
+                          <small class="text-muted">Only you can see this post</small>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-check-card p-3 border rounded">
+                    <%= form.radio_button :status, "published", 
+                          class: "form-check-input",
+                          id: "status_published" %>
+                    <%= form.label :status_published, class: "form-check-label w-100" do %>
+                      <div class="d-flex align-items-center">
+                        <i class="fas fa-eye me-2 text-success"></i>
+                        <div>
+                          <div class="fw-semibold">Publish Now</div>
+                          <small class="text-muted">Make it visible to everyone</small>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+              <% if @post.errors[:status].any? %>
+                <div class="invalid-feedback d-block">
+                  <%= @post.errors[:status].first %>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="mb-4">
+              <button type="button" class="btn btn-outline-info btn-sm" 
+                      data-bs-toggle="collapse" data-bs-target="#preview">
+                <i class="fas fa-eye me-1"></i>
+                Toggle Preview
+              </button>
+              <div class="collapse mt-3" id="preview">
+                <div class="card bg-light">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                      <i class="fas fa-eye me-1"></i>
+                      Live Preview
+                    </h6>
+                    <small class="text-muted">How your post will appear to readers</small>
+                  </div>
+                  <div class="card-body">
+                    <h5 id="preview-title" class="text-muted mb-3">Enter a title to see preview...</h5>
+                    <div id="preview-body" class="text-muted rich-text-preview">
+                      Enter content to see preview...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <%= link_to posts_path, class: "btn btn-outline-secondary" do %>
+                  <i class="fas fa-times me-1"></i>
+                  Cancel
+                <% end %>
+              </div>
+              <div class="d-flex gap-2">
+                <%= form.submit "Save as Draft", 
+                      class: "btn btn-outline-primary",
+                      onclick: "document.getElementById('post_status_draft').checked = true;" %>
+                <%= form.submit "Publish Post", 
+                      class: "btn btn-primary",
+                      onclick: "document.getElementById('post_status_published').checked = true;" %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for Form Handling (Simple Trix Implementation) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const titleField = document.getElementById('post_title');
+  const titleCount = document.getElementById('title-count');
+  const previewTitle = document.getElementById('preview-title');
+  const previewBody = document.getElementById('preview-body');
+  const trixEditor = document.querySelector('trix-editor');
+  const hiddenField = document.getElementById('post_body_hidden');
+  const contentStats = document.getElementById('content-stats');
+
+  console.log('Post form initialized');
+  console.log('Trix editor found:', !!trixEditor);
+  console.log('Hidden field found:', !!hiddenField);
+
+  // Title counter and preview
+  function updateTitleCount() {
+    if (titleField && titleCount) {
+      titleCount.textContent = titleField.value.length;
+    }
+    
+    if (previewTitle && titleField) {
+      previewTitle.textContent = titleField.value || 'Enter a title to see preview...';
+      previewTitle.className = titleField.value ? 'text-dark mb-3' : 'text-muted mb-3';
+    }
+  }
+
+  // Content stats and preview update
+  function updateContent() {
+    if (trixEditor && trixEditor.editor) {
+      // Sync to hidden field
+      if (hiddenField) {
+        hiddenField.value = trixEditor.innerHTML;
+      }
+
+      // Update stats
+      if (contentStats) {
+        const text = trixEditor.editor.getDocument().toString();
+        const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+        const charCount = text.length;
+        const readingTime = Math.ceil(wordCount / 200) || 1;
+        contentStats.textContent = `${charCount} characters | ${wordCount} words | ${readingTime} min read`;
+      }
+
+      // Update preview
+      if (previewBody) {
+        const text = trixEditor.editor.getDocument().toString();
+        const richContent = trixEditor.innerHTML;
+        
+        if (text.trim()) {
+          previewBody.innerHTML = richContent;
+          previewBody.className = 'text-dark rich-text-preview';
+        } else {
+          previewBody.textContent = 'Enter content to see preview...';
+          previewBody.className = 'text-muted rich-text-preview';
+        }
+      }
+    }
+  }
+
+  // Title field events
+  if (titleField) {
+    titleField.addEventListener('input', updateTitleCount);
+    updateTitleCount();
+  }
+
+  // Trix events (using the working approach from trix-test.html)
+  document.addEventListener('trix-initialize', function(event) {
+    if (event.target === trixEditor) {
+      console.log('Trix editor initialized successfully');
+      updateContent();
+    }
+  });
+  
+  document.addEventListener('trix-change', function(event) {
+    if (event.target === trixEditor) {
+      console.log('Trix content changed');
+      updateContent();
+    }
+  });
+  
+  document.addEventListener('trix-focus', function(event) {
+    if (event.target === trixEditor) {
+      console.log('Trix editor focused');
+    }
+  });
+
+  // Form validation and submission
+  const form = document.querySelector('.needs-validation');
+  if (form) {
+    form.addEventListener('submit', function(event) {
+      // Ensure content is synced before submission
+      if (trixEditor && hiddenField) {
+        hiddenField.value = trixEditor.innerHTML;
+        console.log('Content synced on submit:', hiddenField.value.substring(0, 100));
+      }
+      
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    });
+  }
+
+  // Radio button styling
+  const radioButtons = document.querySelectorAll('input[type="radio"][name="post[status]"]');
+  radioButtons.forEach(radio => {
+    radio.addEventListener('change', function() {
+      document.querySelectorAll('.form-check-card').forEach(card => {
+        card.classList.remove('border-primary', 'bg-light');
+      });
+      
+      if (this.checked) {
+        this.closest('.form-check-card').classList.add('border-primary', 'bg-light');
+      }
+    });
+  });
+
+  // Set initial radio button styling
+  const checkedRadio = document.querySelector('input[type="radio"][name="post[status]"]:checked');
+  if (checkedRadio) {
+    checkedRadio.closest('.form-check-card').classList.add('border-primary', 'bg-light');
+  }
+
+  // Debug: Check if Trix is loaded
+  if (typeof Trix !== 'undefined') {
+    console.log('Trix library loaded successfully');
+  } else {
+    console.error('Trix library not loaded!');
+  }
+});
+</script>
+
+<!-- Custom CSS -->
+<style>
+  .form-check-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .form-check-card:hover {
+    border-color: #0d6efd !important;
+    background-color: #f8f9fa !important;
+  }
+  
+  .form-check-input:checked + .form-check-label {
+    color: inherit;
+  }
+  
+  .card {
+    border-radius: 12px;
+  }
+  
+  .form-control {
+    border-radius: 8px;
+  }
+  
+  .btn {
+    border-radius: 8px;
+  }
+  
+  #preview-body {
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+</style>

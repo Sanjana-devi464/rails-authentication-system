@@ -1,0 +1,365 @@
+<!-- Enhanced Notifications Center -->
+<% content_for :title, "Notifications" %>
+
+<!-- Header Section -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="h2 text-dark mb-1">
+          <i class="fas fa-bell me-2 text-primary"></i>
+          Notifications
+        </h1>
+        <p class="text-muted mb-0">Stay updated with your latest activities</p>
+      </div>
+      <div class="notification-actions">
+        <% if @notifications.unread.any? %>
+          <%= link_to mark_all_as_read_notifications_path, method: :patch, 
+              class: "btn btn-outline-primary btn-sm me-2" do %>
+            <i class="fas fa-check-double me-1"></i>
+            Mark All Read
+          <% end %>
+        <% end %>
+        <%= link_to clear_all_notifications_path, method: :delete, 
+            class: "btn btn-outline-danger btn-sm",
+            data: { confirm: "Are you sure you want to clear all notifications?" } do %>
+          <i class="fas fa-trash me-1"></i>
+          Clear All
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Stats -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h3 class="h4 mb-0 text-primary"><%= @notifications.count %></h3>
+            <p class="text-muted small mb-0">Total</p>
+          </div>
+          <i class="fas fa-bell fa-2x text-primary opacity-25"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h3 class="h4 mb-0 text-warning"><%= @notifications.unread.count %></h3>
+            <p class="text-muted small mb-0">Unread</p>
+          </div>
+          <i class="fas fa-envelope fa-2x text-warning opacity-25"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h3 class="h4 mb-0 text-success"><%= @notifications.read.count %></h3>
+            <p class="text-muted small mb-0">Read</p>
+          </div>
+          <i class="fas fa-envelope-open fa-2x text-success opacity-25"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h3 class="h4 mb-0 text-info"><%= @notifications.where(created_at: 24.hours.ago..Time.current).count %></h3>
+            <p class="text-muted small mb-0">Today</p>
+          </div>
+          <i class="fas fa-calendar-day fa-2x text-info opacity-25"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white border-0">
+    <ul class="nav nav-tabs card-header-tabs" id="notificationTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-notifications" type="button" role="tab">
+          <i class="fas fa-list me-1"></i>
+          All (<%= @notifications.count %>)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link <%= 'text-warning fw-bold' if @notifications.unread.any? %>" id="unread-tab" data-bs-toggle="tab" data-bs-target="#unread-notifications" type="button" role="tab">
+          <i class="fas fa-envelope me-1"></i>
+          Unread (<%= @notifications.unread.count %>)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system-notifications" type="button" role="tab">
+          <i class="fas fa-cog me-1"></i>
+          System
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="social-tab" data-bs-toggle="tab" data-bs-target="#social-notifications" type="button" role="tab">
+          <i class="fas fa-users me-1"></i>
+          Social
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Tab Panes -->
+<div class="tab-content" id="notificationTabsContent">
+  <!-- All Notifications -->
+  <div class="tab-pane fade show active" id="all-notifications" role="tabpanel">
+    <%= render 'notification_list', notifications: @notifications %>
+  </div>
+
+  <!-- Unread Notifications -->
+  <div class="tab-pane fade" id="unread-notifications" role="tabpanel">
+    <% if @notifications.unread.any? %>
+      <%= render 'notification_list', notifications: @notifications.unread %>
+    <% else %>
+      <div class="text-center py-5">
+        <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+        <h4 class="text-success">All caught up!</h4>
+        <p class="text-muted">You have no unread notifications.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- System Notifications -->
+  <div class="tab-pane fade" id="system-notifications" role="tabpanel">
+    <% system_notifications = @notifications.where(notification_type: ['welcome', 'account_verified', 'password_changed', 'security_alert', 'role_changed', 'account_warning', 'feature_announcement', 'maintenance']) %>
+    <% if system_notifications.any? %>
+      <%= render 'notification_list', notifications: system_notifications %>
+    <% else %>
+      <div class="text-center py-5">
+        <i class="fas fa-cog fa-5x text-muted mb-4"></i>
+        <h4 class="text-muted">No system notifications</h4>
+        <p class="text-muted">System updates and alerts will appear here.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Social Notifications -->
+  <div class="tab-pane fade" id="social-notifications" role="tabpanel">
+    <% social_notifications = @notifications.where(notification_type: ['new_follower', 'post_liked', 'post_commented', 'mentioned', 'friend_request', 'new_post_from_followed', 'post_updated', 'content_featured']) %>
+    <% if social_notifications.any? %>
+      <%= render 'notification_list', notifications: social_notifications %>
+    <% else %>
+      <div class="text-center py-5">
+        <i class="fas fa-users fa-5x text-muted mb-4"></i>
+        <h4 class="text-muted">No social notifications</h4>
+        <p class="text-muted">Interactions from other users will appear here.</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Pagination -->
+<% if @notifications.respond_to?(:current_page) %>
+  <div class="row mt-4">
+    <div class="col-12 d-flex justify-content-center">
+      <%= paginate @notifications, theme: 'twitter-bootstrap-4' %>
+    </div>
+  </div>
+<% end %>
+
+<!-- Quick Actions Modal -->
+<div class="modal fade" id="notificationSettingsModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-cog me-2"></i>
+          Notification Settings
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+          <label class="form-check-label" for="emailNotifications">
+            Email notifications
+          </label>
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
+          <label class="form-check-label" for="pushNotifications">
+            Push notifications
+          </label>
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="socialNotifications" checked>
+          <label class="form-check-label" for="socialNotifications">
+            Social activity notifications
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="systemNotifications" checked>
+          <label class="form-check-label" for="systemNotifications">
+            System notifications
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveNotificationSettings()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Floating Button -->
+<div class="floating-settings">
+  <button class="btn btn-primary rounded-circle shadow-lg" 
+          data-bs-toggle="modal" 
+          data-bs-target="#notificationSettingsModal"
+          title="Notification Settings">
+    <i class="fas fa-cog"></i>
+  </button>
+</div>
+
+<!-- Custom Styles -->
+<style>
+  .notification-item {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+  }
+
+  .notification-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+    border-left-color: var(--bs-primary);
+  }
+
+  .notification-item.unread {
+    background-color: #f8f9fa;
+    border-left-color: var(--bs-warning);
+  }
+
+  .notification-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 15px;
+  }
+
+  .priority-urgent {
+    border-left-color: #dc3545 !important;
+  }
+
+  .priority-high {
+    border-left-color: #fd7e14 !important;
+  }
+
+  .priority-normal {
+    border-left-color: #0d6efd !important;
+  }
+
+  .priority-low {
+    border-left-color: #6c757d !important;
+  }
+
+  .floating-settings {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+  }
+
+  .floating-settings .btn {
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+  }
+
+  .notification-actions .btn {
+    transition: all 0.2s ease;
+  }
+
+  .notification-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+
+  .nav-tabs .nav-link.active {
+    background-color: var(--bs-primary);
+    color: white;
+    border-color: var(--bs-primary);
+  }
+
+  .badge {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+</style>
+
+<!-- JavaScript -->
+<script>
+  function saveNotificationSettings() {
+    // Implement settings save functionality
+    alert('Settings saved successfully!');
+    $('#notificationSettingsModal').modal('hide');
+  }
+
+  // Auto-refresh notifications every 30 seconds
+  setInterval(function() {
+    // Check for new notifications
+    fetch('/notifications/recent')
+      .then(response => response.json())
+      .then(data => {
+        if (data.new_count > 0) {
+          // Update notification count in navbar if exists
+          const notificationBadge = document.querySelector('.notification-badge');
+          if (notificationBadge) {
+            notificationBadge.textContent = data.total_unread;
+            notificationBadge.classList.add('badge-pulse');
+          }
+        }
+      })
+      .catch(error => console.log('Notification check failed:', error));
+  }, 30000);
+
+  // Mark notification as read when clicked
+  document.addEventListener('click', function(e) {
+    const notificationLink = e.target.closest('.notification-link');
+    if (notificationLink) {
+      const notificationId = notificationLink.dataset.notificationId;
+      if (notificationId) {
+        fetch(`/notifications/${notificationId}/mark_as_read`, {
+          method: 'PATCH',
+          headers: {
+            'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+    }
+  });
+</script>

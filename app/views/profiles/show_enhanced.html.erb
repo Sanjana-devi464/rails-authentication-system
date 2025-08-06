@@ -1,0 +1,577 @@
+<!-- Enhanced User Profile with Social Features -->
+<% content_for :title, "#{@user.display_name}'s Profile" %>
+
+<!-- Profile Header Section -->
+<div class="profile-header bg-gradient-primary text-white py-5 mb-4 rounded">
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-md-3 text-center">
+        <div class="profile-avatar-wrapper position-relative">
+          <%= image_tag @user.avatar_url(:large), 
+              class: "rounded-circle border border-4 border-white shadow-lg profile-avatar", 
+              style: "width: 150px; height: 150px; object-fit: cover;" %>
+          <% if @user.online? %>
+            <span class="position-absolute bottom-0 end-0 bg-success rounded-circle border border-3 border-white" 
+                  style="width: 30px; height: 30px;" 
+                  title="Online">
+            </span>
+          <% end %>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <h1 class="display-5 fw-bold mb-2"><%= @user.display_name %></h1>
+        <% if @user.profile&.occupation.present? %>
+          <h5 class="text-light mb-3">
+            <i class="fas fa-briefcase me-2"></i>
+            <%= @user.profile.occupation %>
+            <% if @user.profile.company.present? %>
+              at <%= @user.profile.company %>
+            <% end %>
+          </h5>
+        <% end %>
+        
+        <% if @user.profile&.location.present? %>
+          <p class="mb-2">
+            <i class="fas fa-map-marker-alt me-2"></i>
+            <%= @user.profile.location %>
+          </p>
+        <% end %>
+        
+        <p class="mb-3">
+          <i class="fas fa-calendar-alt me-2"></i>
+          Joined <%= @user.created_at.strftime('%B %Y') %>
+          <% if @user.online? %>
+            <span class="badge bg-success ms-2">
+              <i class="fas fa-circle me-1" style="font-size: 8px;"></i>
+              Online
+            </span>
+          <% end %>
+        </p>
+        
+        <% if @user.profile&.bio.present? %>
+          <p class="lead mb-0"><%= simple_format(@user.profile.bio) %></p>
+        <% end %>
+      </div>
+      
+      <div class="col-md-3 text-center">
+        <div class="profile-stats">
+          <div class="row">
+            <div class="col-4">
+              <div class="stat-item bg-white bg-opacity-20 rounded p-3 mb-2">
+                <h4 class="mb-1"><%= @user.posts.published.count %></h4>
+                <small>Posts</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat-item bg-white bg-opacity-20 rounded p-3 mb-2">
+                <h4 class="mb-1"><%= @user.comments.count %></h4>
+                <small>Comments</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat-item bg-white bg-opacity-20 rounded p-3 mb-2">
+                <h4 class="mb-1"><%= @profile&.profile_views || 0 %></h4>
+                <small>Views</small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="mt-3">
+            <% if current_user == @user %>
+              <%= link_to edit_user_registration_path, class: "btn btn-light btn-sm me-2" do %>
+                <i class="fas fa-edit me-1"></i>
+                Edit Profile
+              <% end %>
+            <% else %>
+              <button class="btn btn-light btn-sm me-2" onclick="followUser()">
+                <i class="fas fa-user-plus me-1"></i>
+                Follow
+              </button>
+              <button class="btn btn-outline-light btn-sm" onclick="messageUser()">
+                <i class="fas fa-envelope me-1"></i>
+                Message
+              </button>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Content -->
+<div class="row">
+  <!-- Left Sidebar -->
+  <div class="col-lg-4">
+    <!-- About Card -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-user text-primary me-2"></i>
+          About
+        </h5>
+      </div>
+      <div class="card-body">
+        <% if @user.profile&.bio.present? %>
+          <p class="mb-3"><%= simple_format(@user.profile.bio) %></p>
+        <% end %>
+        
+        <div class="profile-details">
+          <% if @user.profile&.location.present? %>
+            <div class="detail-item mb-2">
+              <i class="fas fa-map-marker-alt text-muted me-2"></i>
+              <strong>Location:</strong> <%= @user.profile.location %>
+            </div>
+          <% end %>
+          
+          <% if @user.profile&.occupation.present? %>
+            <div class="detail-item mb-2">
+              <i class="fas fa-briefcase text-muted me-2"></i>
+              <strong>Occupation:</strong> <%= @user.profile.occupation %>
+            </div>
+          <% end %>
+          
+          <% if @user.profile&.company.present? %>
+            <div class="detail-item mb-2">
+              <i class="fas fa-building text-muted me-2"></i>
+              <strong>Company:</strong> <%= @user.profile.company %>
+            </div>
+          <% end %>
+          
+          <% if @user.profile&.education.present? %>
+            <div class="detail-item mb-2">
+              <i class="fas fa-graduation-cap text-muted me-2"></i>
+              <strong>Education:</strong> <%= @user.profile.education %>
+            </div>
+          <% end %>
+          
+          <% if @user.profile&.years_of_experience.present? %>
+            <div class="detail-item mb-2">
+              <i class="fas fa-chart-line text-muted me-2"></i>
+              <strong>Experience:</strong> <%= @user.profile.years_of_experience %> years
+            </div>
+          <% end %>
+          
+          <div class="detail-item mb-2">
+            <i class="fas fa-calendar-alt text-muted me-2"></i>
+            <strong>Member since:</strong> <%= @user.created_at.strftime('%B %Y') %>
+          </div>
+          
+          <div class="detail-item">
+            <i class="fas fa-clock text-muted me-2"></i>
+            <strong>Last seen:</strong> 
+            <% if @user.online? %>
+              <span class="text-success">Online now</span>
+            <% elsif @user.last_seen_at.present? %>
+              <%= time_ago_in_words(@user.last_seen_at) %> ago
+            <% else %>
+              Unknown
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills & Interests -->
+    <% if @user.profile&.skills.present? || @user.profile&.interests.present? %>
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0">
+          <h5 class="mb-0">
+            <i class="fas fa-tags text-primary me-2"></i>
+            Skills & Interests
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if @user.profile.skills.present? %>
+            <div class="mb-3">
+              <h6 class="text-muted mb-2">Skills</h6>
+              <div class="skill-tags">
+                <% @user.profile.skills.each do |skill| %>
+                  <span class="badge bg-primary me-1 mb-1"><%= skill %></span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+          
+          <% if @user.profile.interests.present? %>
+            <div>
+              <h6 class="text-muted mb-2">Interests</h6>
+              <div class="interest-tags">
+                <% @user.profile.interests.each do |interest| %>
+                  <span class="badge bg-secondary me-1 mb-1"><%= interest %></span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Social Links -->
+    <% if @social_links.present? && @social_links.any? %>
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0">
+          <h5 class="mb-0">
+            <i class="fas fa-share-alt text-primary me-2"></i>
+            Social Links
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="social-links">
+            <% @social_links.each do |platform, url| %>
+              <% if url.present? %>
+                <%= link_to url, target: '_blank', class: "btn btn-outline-primary btn-sm me-2 mb-2" do %>
+                  <i class="fab fa-<%= platform.downcase %> me-1"></i>
+                  <%= platform.humanize %>
+                <% end %>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Contact Information -->
+    <% if current_user == @user || (@user.profile&.show_email || @user.profile&.show_phone) %>
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0">
+          <h5 class="mb-0">
+            <i class="fas fa-address-card text-primary me-2"></i>
+            Contact Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if current_user == @user || @user.profile&.show_email %>
+            <div class="contact-item mb-2">
+              <i class="fas fa-envelope text-muted me-2"></i>
+              <a href="mailto:<%= @user.email %>" class="text-decoration-none">
+                <%= @user.email %>
+              </a>
+            </div>
+          <% end %>
+          
+          <% if @user.phone.present? && (current_user == @user || @user.profile&.show_phone) %>
+            <div class="contact-item">
+              <i class="fas fa-phone text-muted me-2"></i>
+              <a href="tel:<%= @user.phone %>" class="text-decoration-none">
+                <%= @user.phone %>
+              </a>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Main Content -->
+  <div class="col-lg-8">
+    <!-- Navigation Tabs -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white border-0">
+        <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts" type="button" role="tab">
+              <i class="fas fa-file-alt me-1"></i>
+              Posts (<%= @user.posts.published.count %>)
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab">
+              <i class="fas fa-history me-1"></i>
+              Activity
+            </button>
+          </li>
+          <% if current_user == @user %>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                <i class="fas fa-chart-bar me-1"></i>
+                Analytics
+              </button>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="profileTabsContent">
+      <!-- Posts Tab -->
+      <div class="tab-pane fade show active" id="posts" role="tabpanel">
+        <% if @user.posts.published.any? %>
+          <div class="row">
+            <% @user.posts.published.recent.limit(6).each do |post| %>
+              <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm hover-lift h-100">
+                  <div class="card-body">
+                    <h5 class="card-title">
+                      <%= link_to post.title, post_path(post), 
+                          class: "text-decoration-none text-dark hover-primary" %>
+                    </h5>
+                    <p class="card-text text-muted">
+                      <%= truncate(strip_tags(post.body), length: 100) %>
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center text-muted small">
+                      <span>
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        <%= time_ago_in_words(post.created_at) %> ago
+                      </span>
+                      <span>
+                        <i class="fas fa-comments me-1"></i>
+                        <%= post.comments.count %>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+          
+          <% if @user.posts.published.count > 6 %>
+            <div class="text-center mt-4">
+              <%= link_to posts_path(author: @user.id), class: "btn btn-outline-primary" do %>
+                <i class="fas fa-eye me-1"></i>
+                View All Posts (<%= @user.posts.published.count %>)
+              <% end %>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="text-center py-5">
+            <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">No posts yet</h5>
+            <% if current_user == @user %>
+              <p class="text-muted mb-3">Share your thoughts with the community!</p>
+              <%= link_to new_post_path, class: "btn btn-primary" do %>
+                <i class="fas fa-plus-circle me-1"></i>
+                Write Your First Post
+              <% end %>
+            <% else %>
+              <p class="text-muted">This user hasn't published any posts yet.</p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Activity Tab -->
+      <div class="tab-pane fade" id="activity" role="tabpanel">
+        <% if @recent_activities.any? %>
+          <div class="activity-timeline">
+            <% @recent_activities.each_with_index do |activity, index| %>
+              <div class="activity-item <%= 'activity-item-last' if index == @recent_activities.size - 1 %>">
+                <div class="activity-marker bg-primary"></div>
+                <div class="activity-content">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                      <h6 class="mb-1"><%= activity.description %></h6>
+                      <% if activity.trackable.present? %>
+                        <p class="mb-1 text-muted small">
+                          <i class="fas fa-link me-1"></i>
+                          Related to: <%= activity.trackable_type %>
+                          <% if activity.trackable.respond_to?(:title) %>
+                            "<%= truncate(activity.trackable.title, length: 30) %>"
+                          <% end %>
+                        </p>
+                      <% end %>
+                      <small class="text-muted">
+                        <i class="far fa-clock me-1"></i>
+                        <%= time_ago_in_words(activity.created_at) %> ago
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-5">
+            <i class="fas fa-history fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">No recent activity</h5>
+            <p class="text-muted">User activity will appear here.</p>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Analytics Tab (Only for own profile) -->
+      <% if current_user == @user %>
+        <div class="tab-pane fade" id="analytics" role="tabpanel">
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                  <i class="fas fa-eye fa-3x text-info mb-3"></i>
+                  <h3 class="text-info"><%= @profile&.profile_views || 0 %></h3>
+                  <p class="text-muted mb-0">Profile Views</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                  <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                  <h3 class="text-success"><%= @user.activity_score %></h3>
+                  <p class="text-muted mb-0">Activity Score</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                  <i class="fas fa-users fa-3x text-warning mb-3"></i>
+                  <h3 class="text-warning">0</h3>
+                  <p class="text-muted mb-0">Followers</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Recent Performance -->
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+              <h5 class="mb-0">
+                <i class="fas fa-chart-bar text-primary me-2"></i>
+                Recent Performance
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="text-muted">This Month</h6>
+                  <ul class="list-unstyled">
+                    <li class="mb-2">
+                      <i class="fas fa-file-alt text-primary me-2"></i>
+                      Posts: <%= @user.posts.where(created_at: 1.month.ago..Time.current).count %>
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-comments text-info me-2"></i>
+                      Comments: <%= @user.comments.where(created_at: 1.month.ago..Time.current).count %>
+                    </li>
+                    <li>
+                      <i class="fas fa-chart-line text-success me-2"></i>
+                      Activities: <%= @user.user_activities.where(created_at: 1.month.ago..Time.current).count %>
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-muted">All Time</h6>
+                  <ul class="list-unstyled">
+                    <li class="mb-2">
+                      <i class="fas fa-file-alt text-primary me-2"></i>
+                      Total Posts: <%= @user.posts.count %>
+                    </li>
+                    <li class="mb-2">
+                      <i class="fas fa-comments text-info me-2"></i>
+                      Total Comments: <%= @user.comments.count %>
+                    </li>
+                    <li>
+                      <i class="fas fa-chart-line text-success me-2"></i>
+                      Total Activities: <%= @user.user_activities.count %>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, #6f42c1 100%);
+  }
+
+  .profile-avatar {
+    transition: transform 0.3s ease;
+  }
+
+  .profile-avatar:hover {
+    transform: scale(1.05);
+  }
+
+  .hover-lift {
+    transition: all 0.3s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .hover-primary:hover {
+    color: var(--bs-primary) !important;
+  }
+
+  .stat-item {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .activity-timeline {
+    position: relative;
+    padding-left: 30px;
+  }
+
+  .activity-item {
+    position: relative;
+    padding-bottom: 30px;
+  }
+
+  .activity-item:not(.activity-item-last)::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 20px;
+    bottom: -30px;
+    width: 2px;
+    background: #e9ecef;
+  }
+
+  .activity-marker {
+    position: absolute;
+    left: -30px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px var(--bs-primary);
+  }
+
+  .activity-content {
+    margin-left: 10px;
+  }
+
+  .social-links .btn {
+    transition: all 0.2s ease;
+  }
+
+  .social-links .btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .skill-tags .badge,
+  .interest-tags .badge {
+    transition: all 0.2s ease;
+  }
+
+  .skill-tags .badge:hover,
+  .interest-tags .badge:hover {
+    transform: scale(1.1);
+  }
+</style>
+
+<!-- JavaScript Functions -->
+<script>
+  function followUser() {
+    // Implement follow functionality
+    alert('Follow functionality will be implemented soon!');
+  }
+
+  function messageUser() {
+    // Implement messaging functionality
+    alert('Messaging functionality will be implemented soon!');
+  }
+</script>

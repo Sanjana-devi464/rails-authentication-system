@@ -1,0 +1,81 @@
+<div class="container-fluid">
+  <!-- Hero Section -->
+  <div class="row bg-primary text-white py-5">
+    <div class="col-lg-8 mx-auto text-center">
+      <h1 class="display-4 fw-bold mb-4">
+        <i class="bi bi-shield-check"></i> Welcome to RoR Auth App
+      </h1>
+      <p class="lead mb-4">
+        A secure and modern authentication system built with Ruby on Rails and Devise.
+        Sign up today to access your personalized dashboard.
+      </p>
+      <div class="d-flex gap-3 justify-content-center">
+        <%= link_to new_user_registration_path, class: "btn btn-light btn-lg" do %>
+          <i class="bi bi-person-plus"></i> Get Started
+        <% end %>
+        <%= link_to new_user_session_path, class: "btn btn-outline-light btn-lg" do %>
+          <i class="bi bi-box-arrow-in-right"></i> Sign In
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="row py-5">
+    <div class="col-lg-10 mx-auto">
+      <h2 class="text-center mb-5">Why Choose Our Platform?</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card h-100 text-center border-0 shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-shield-lock display-4 text-primary mb-3"></i>
+              <h5 class="card-title">Secure Authentication</h5>
+              <p class="card-text">
+                Built with Devise gem providing industry-standard security features
+                including password encryption and session management.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 text-center border-0 shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-speedometer2 display-4 text-success mb-3"></i>
+              <h5 class="card-title">Personal Dashboard</h5>
+              <p class="card-text">
+                Access your personalized dashboard with profile management,
+                password changes, and account settings.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 text-center border-0 shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-phone display-4 text-info mb-3"></i>
+              <h5 class="card-title">Mobile Responsive</h5>
+              <p class="card-text">
+                Beautiful and responsive design that works seamlessly
+                across all devices and screen sizes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="row bg-light py-5">
+    <div class="col-lg-6 mx-auto text-center">
+      <h3 class="mb-4">Ready to Get Started?</h3>
+      <p class="text-muted mb-4">
+        Join thousands of users who trust our secure authentication system.
+        Create your account in seconds and start exploring your dashboard.
+      </p>
+      <%= link_to new_user_registration_path, class: "btn btn-primary btn-lg" do %>
+        <i class="bi bi-rocket-takeoff"></i> Create Account Now
+      <% end %>
+    </div>
+  </div>
+</div>

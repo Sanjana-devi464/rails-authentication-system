@@ -1,0 +1,395 @@
+<% content_for :title, "Dashboard" %>
+
+<div class="dashboard-container" data-controller="dashboard">
+  <!-- Welcome Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card bg-gradient-primary text-white">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h1 class="h3 mb-2">Welcome back, <%= current_user.display_name %>! 👋</h1>
+              <p class="mb-0 opacity-75">
+                <%= @recent_activity %>
+                <% if current_user.last_sign_in_at %>
+                  • Last login: <%= time_ago_in_words(current_user.last_sign_in_at) %> ago
+                <% end %>
+              </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <%= image_tag current_user.avatar_url(:large), 
+                  class: "rounded-circle", 
+                  style: "width: 80px; height: 80px; object-fit: cover;" %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats Row -->
+  <div class="row mb-4">
+    
+    <div class="col-md-3 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h3 class="h4 mb-0 text-success" id="stat-total_activities"><%= @quick_stats[:total_activities] || 0 %></h3>
+              <p class="text-muted small mb-0">Total Activities</p>
+            </div>
+            <i class="fas fa-chart-line fa-2x text-success opacity-25"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h3 class="h4 mb-0 text-success" id="stat-posts_count"><%= current_user.posts.count %></h3>
+              <p class="text-muted small mb-0">Total Posts</p>
+            </div>
+            <i class="fas fa-blog fa-2x text-success opacity-25"></i>
+          </div>
+          <div class="mt-2">
+            <small class="text-muted">
+              <%= current_user.posts.published.count %> published •
+              <%= current_user.posts.drafts.count %> drafts
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h3 class="h4 mb-0 text-info" id="stat-comments_count"><%= current_user.comments.count %></h3>
+              <p class="text-muted small mb-0">Comments Made</p>
+            </div>
+            <i class="fas fa-comments fa-2x text-info opacity-25"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h3 class="h4 mb-0 text-warning" id="stat-unread_notifications"><%= unread_notifications_count %></h3>
+              <p class="text-muted small mb-0">Notifications</p>
+            </div>
+            <i class="fas fa-bell fa-2x text-warning opacity-25"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h3 class="h4 mb-0 text-info" id="stat-account_age_days"><%= @quick_stats[:account_age_days] || 0 %></h3>
+              <p class="text-muted small mb-0">Days Member</p>
+            </div>
+            <i class="fas fa-calendar-alt fa-2x text-info opacity-25"></i>
+          </div>
+          <div class="mt-1">
+            <small class="text-muted">
+              Since <%= current_user.created_at.strftime('%b %Y') %>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Recent Posts Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 d-flex align-items-center justify-content-between">
+          <h5 class="mb-0">
+            <i class="fas fa-newspaper me-2 text-primary"></i>Your Recent Posts
+          </h5>
+          <%= link_to "View All Posts", my_posts_posts_path, class: "btn btn-sm btn-outline-primary" %>
+        </div>
+        <div class="card-body">
+          <% recent_posts = current_user.posts.recent.limit(3) %>
+          <% if recent_posts.any? %>
+            <div class="row">
+              <% recent_posts.each do |post| %>
+                <div class="col-md-4 mb-3">
+                  <div class="card h-100 border-0" style="background: #f8f9fa;">
+                    <div class="card-body">
+                      <%= link_to post_path(post), class: "text-decoration-none" do %>
+                        <h6 class="card-title text-dark"><%= truncate(post.title, length: 40) %></h6>
+                      <% end %>
+                      <p class="card-text small text-muted">
+                        <%= truncate(strip_tags(post.body), length: 80) %>
+                      </p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-<%= post.status == 'published' ? 'success' : 'secondary' %>">
+                          <%= post.status.humanize %>
+                        </span>
+                        <small class="text-muted">
+                          <%= time_ago_in_words(post.created_at) %> ago
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="fas fa-pen-alt fa-3x text-muted mb-3"></i>
+              <p class="text-muted">You haven't written any posts yet.</p>
+              <%= link_to "Write Your First Post", new_post_path, class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Row -->
+  <div class="row">
+    <!-- Recent Activities -->
+    <div class="col-lg-8 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0 d-flex align-items-center justify-content-between">
+          <h5 class="mb-0">
+            <i class="fas fa-clock me-2 text-primary"></i>Recent Activities
+          </h5>
+          <div>
+            <button data-action="click->dashboard#refresh" class="btn btn-sm btn-outline-primary me-2">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <%= link_to dashboard_analytics_path, class: "btn btn-sm btn-outline-info" do %>
+              <i class="fas fa-chart-bar"></i> Analytics
+            <% end %>
+          </div>
+        </div>
+        <div class="card-body">
+          <% if @recent_activities.any? %>
+            <div class="activity-timeline">
+              <% @recent_activities.each do |activity| %>
+                <div class="activity-item d-flex align-items-start mb-3">
+                  <div class="activity-icon me-3">
+                    <i class="<%= activity.icon_class %> fa-sm"></i>
+                  </div>
+                  <div class="activity-content flex-grow-1">
+                    <div class="activity-description">
+                      <%= activity.formatted_description %>
+                    </div>
+                    <div class="activity-time text-muted small">
+                      <%= activity.time_ago %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            
+            <%= link_to "View All Activities", user_activities_path, class: "btn btn-outline-primary btn-sm" %>
+          <% else %>
+            <div class="text-center py-4">
+              <i class="fas fa-history fa-3x text-muted mb-3"></i>
+              <p class="text-muted">No recent activities to show.</p>
+              <p class="small text-muted">Start exploring features to see your activity here!</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Today's Progress -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0">
+          <h6 class="mb-0">
+            <i class="fas fa-calendar-day me-2 text-primary"></i>Today's Activity
+          </h6>
+        </div>
+        <div class="card-body">
+          <% today_activities = current_user.user_activities.where(created_at: Date.current.beginning_of_day..Date.current.end_of_day).count %>
+          <div class="text-center">
+            <div class="progress mb-3" style="height: 10px;">
+              <% activity_percentage = [today_activities * 10, 100].min %>
+              <div class="progress-bar bg-primary" style="width: <%= activity_percentage %>%"></div>
+            </div>
+            <div class="h4 text-primary"><%= today_activities %></div>
+            <p class="text-muted small mb-0">Activities Today</p>
+            <% if today_activities > 0 %>
+              <small class="text-success">Great job staying active! 🎉</small>
+            <% else %>
+              <small class="text-muted">Start by exploring some posts!</small>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggested Actions -->
+      <% if @suggested_actions.any? %>
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0">
+            <h6 class="mb-0">
+              <i class="fas fa-lightbulb me-2 text-warning"></i>Suggested Actions
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="suggestions">
+              <% @suggested_actions.each do |suggestion| %>
+                <div class="suggestion-item d-flex align-items-center mb-2">
+                  <i class="<%= suggestion[:icon] %> me-2 text-<%= suggestion[:priority] == 'high' ? 'danger' : suggestion[:priority] == 'medium' ? 'warning' : 'info' %>"></i>
+                  <div class="flex-grow-1">
+                    <div class="small fw-bold"><%= suggestion[:title] %></div>
+                    <div class="text-muted" style="font-size: 0.75rem;"><%= suggestion[:description] %></div>
+                  </div>
+                  <% if suggestion[:action_url] %>
+                    <%= link_to suggestion[:action_url], class: "btn btn-sm btn-outline-primary" do %>
+                      <i class="fas fa-arrow-right fa-xs"></i>
+                    <% end %>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Quick Actions -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0">
+          <h6 class="mb-0">
+            <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <%= link_to new_post_path, class: "btn btn-outline-primary btn-sm" do %>
+              <i class="fas fa-pen me-2"></i>Write Post
+            <% end %>
+            
+            <%= link_to edit_user_registration_path, class: "btn btn-outline-secondary btn-sm" do %>
+              <i class="fas fa-user-edit me-2"></i>Edit Profile
+            <% end %>
+            
+            <%= link_to notifications_path, class: "btn btn-outline-info btn-sm" do %>
+              <i class="fas fa-bell me-2"></i>Notifications
+            <% end %>
+            
+            <%= link_to profiles_path, class: "btn btn-outline-success btn-sm" do %>
+              <i class="fas fa-users me-2"></i>Find Users
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Notifications -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 d-flex align-items-center justify-content-between">
+          <h6 class="mb-0">
+            <i class="fas fa-bell me-2 text-info"></i>Recent Notifications
+          </h6>
+          <% if unread_notifications_count > 0 %>
+            <span class="badge bg-danger"><%= unread_notifications_count %></span>
+          <% end %>
+        </div>
+        <div class="card-body">
+          <% if @notifications.any? %>
+            <div class="notification-list">
+              <% @notifications.each do |notification| %>
+                <div class="notification-item d-flex align-items-start mb-3 <%= 'fw-bold' unless notification.read? %>">
+                  <i class="<%= notification.icon_class %> me-2 mt-1"></i>
+                  <div class="flex-grow-1">
+                    <div class="notification-title small"><%= notification.title %></div>
+                    <div class="notification-message text-muted" style="font-size: 0.75rem;">
+                      <%= truncate(notification.summary_text, length: 60) %>
+                    </div>
+                    <div class="notification-time text-muted" style="font-size: 0.7rem;">
+                      <%= notification.time_ago %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            
+            <%= link_to "View All Notifications", notifications_path, class: "btn btn-outline-info btn-sm w-100" %>
+          <% else %>
+            <div class="text-center py-3">
+              <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+              <p class="small text-muted mb-0">No notifications yet.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.activity-timeline {
+  position: relative;
+}
+
+.activity-item {
+  position: relative;
+  padding-left: 0;
+}
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+  background: #f8f9fa;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #e9ecef;
+}
+
+.suggestion-item:last-child {
+  margin-bottom: 0 !important;
+}
+
+.notification-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 0 10px;
+  }
+  
+  .col-md-3 {
+    margin-bottom: 1rem;
+  }
+}
+</style>

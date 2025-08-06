@@ -1,0 +1,123 @@
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="text-center mb-5">
+      <h1 class="display-4 text-primary mb-3">About Us</h1>
+      <p class="lead text-muted">Learn more about our platform and the team behind it</p>
+    </div>
+
+    <!-- Platform Information -->
+    <div class="card shadow-sm mb-5">
+      <div class="card-body p-5">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h2 class="h3 text-primary mb-3">Our Platform</h2>
+            <p class="mb-3">
+              Welcome to RoR Auth App, a modern Ruby on Rails application that provides a comprehensive 
+              platform for user authentication, content management, and social interaction. Our platform 
+              offers a seamless experience for users to create accounts, share posts, engage with content, 
+              and build meaningful connections.
+            </p>
+            <p class="mb-0">
+              Built with cutting-edge technologies including Ruby on Rails, Bootstrap, and modern web 
+              standards, our application prioritizes security, performance, and user experience.
+            </p>
+          </div>
+          <div class="col-md-4 text-center">
+            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center about-platform-icon" 
+                 style="width: 120px; height: 120px;">
+              <i class="fas fa-rocket fa-3x text-primary"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Developer Information -->
+    <div class="card shadow-sm about-developer-card">
+      <div class="card-header bg-primary text-white">
+        <h2 class="h4 mb-0">
+          <i class="fas fa-code me-2"></i>
+          Developer Information
+        </h2>
+      </div>
+      <div class="card-body p-5">
+        <div class="row align-items-center">
+          <div class="col-md-4 text-center mb-4 mb-md-0">
+            <div class="position-relative">
+              <img src="https://i.ibb.co/Mkrr5B1F/Pi7-Passport-Photo.jpg" 
+                   alt="Sanjana Devi - Software Engineer" 
+                   class="rounded-circle mb-3 shadow"
+                   style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #007bff;">
+              <div class="position-absolute bottom-0 end-0 bg-success rounded-circle d-flex align-items-center justify-content-center text-white" 
+                   style="width: 35px; height: 35px; transform: translate(10px, -10px);">
+                <i class="fas fa-check fa-sm"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <h3 class="h4 text-primary mb-3">Sanjana Devi</h3>
+            <div class="mb-3">
+              <span class="badge bg-secondary fs-6 px-3 py-2">
+                <i class="fas fa-briefcase me-1"></i>
+                Software Engineer
+              </span>
+            </div>
+            
+            <p class="text-muted mb-4">
+              Results-driven Computer Science Engineering student with hands-on experience in full-stack 
+              development and AI integration. Demonstrated leadership through successful project management 
+              and hackathon participation. Seeking to leverage technical expertise and problem-solving 
+              abilities to contribute to innovative software solutions in a dynamic development environment.
+            </p>
+
+            <!-- Contact Information -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <a href="https://www.linkedin.com/in/sanjana-devi-6719b1359/" 
+                   target="_blank" 
+                   class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center contact-btn">
+                  <i class="fab fa-linkedin me-2"></i>
+                  LinkedIn Profile
+                </a>
+              </div>
+              <div class="col-md-6">
+                <a href="https://github.com/Sanjana-devi464" 
+                   target="_blank" 
+                   class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center contact-btn">
+                  <i class="fab fa-github me-2"></i>
+                  GitHub Profile
+                </a>
+              </div>
+              <div class="col-12">
+                <a href="mailto:sanjanash464@gmail.com" 
+                   class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center contact-btn">
+                  <i class="fas fa-envelope me-2"></i>
+                  sanjanash464@gmail.com
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center mt-5">
+      <div class="bg-light rounded p-4">
+        <h3 class="h4 text-primary mb-3">Get Started Today</h3>
+        <p class="text-muted mb-3">
+          Join our community and start sharing your thoughts, connecting with others, and exploring amazing content.
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+          <% unless user_signed_in? %>
+            <%= link_to "Sign Up Now", new_user_registration_path, class: "btn btn-primary px-4" %>
+            <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary px-4" %>
+          <% else %>
+            <%= link_to "Go to Dashboard", dashboard_path, class: "btn btn-primary px-4" %>
+            <%= link_to "View Posts", posts_path, class: "btn btn-outline-primary px-4" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

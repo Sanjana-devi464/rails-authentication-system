@@ -1,0 +1,69 @@
+<!-- No Results Partial -->
+<div class="text-center py-5">
+  <div class="no-results-state">
+    <% 
+      icon_class = case type
+                   when 'posts' then 'fas fa-file-alt'
+                   when 'users' then 'fas fa-users'
+                   when 'comments' then 'fas fa-comments'
+                   else 'fas fa-search'
+                   end
+    %>
+    
+    <i class="<%= icon_class %> fa-5x text-muted mb-4"></i>
+    
+    <h4 class="text-muted mb-3">
+      No <%= type %> found
+    </h4>
+    
+    <p class="text-muted mb-4">
+      <% case type %>
+      <% when 'posts' %>
+        No posts match your search criteria. Try different keywords or browse all posts.
+      <% when 'users' %>
+        No users found with those search terms. Try searching by name or username.
+      <% when 'comments' %>
+        No comments match your search. Comments may contain the information you're looking for.
+      <% else %>
+        No results found. Try adjusting your search terms or browse our content.
+      <% end %>
+    </p>
+    
+    <div class="no-results-actions">
+      <%= link_to search_path, class: "btn btn-outline-primary me-2" do %>
+        <i class="fas fa-search me-1"></i>
+        Try New Search
+      <% end %>
+      
+      <% case type %>
+      <% when 'posts' %>
+        <%= link_to posts_path, class: "btn btn-primary" do %>
+          <i class="fas fa-book-open me-1"></i>
+          Browse All Posts
+        <% end %>
+      <% when 'users' %>
+        <%= link_to profiles_path, class: "btn btn-primary" do %>
+          <i class="fas fa-users me-1"></i>
+          Browse All Users
+        <% end %>
+      <% else %>
+        <%= link_to root_path, class: "btn btn-primary" do %>
+          <i class="fas fa-home me-1"></i>
+          Go Home
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .no-results-state i {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+  }
+</style>

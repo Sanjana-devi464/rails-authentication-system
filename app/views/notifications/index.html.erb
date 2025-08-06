@@ -1,0 +1,208 @@
+<% content_for :title, "Notifications" %>
+
+<div class="notifications-container">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h3 mb-1">Notifications</h1>
+          <p class="text-muted mb-0">
+            <% if @unread_count > 0 %>
+              You have <%= pluralize(@unread_count, 'unread notification') %>
+            <% else %>
+              You're all caught up!
+            <% end %>
+          </p>
+        </div>
+        <div class="btn-group" role="group">
+          <%= link_to notifications_path, 
+              class: "btn #{'btn-primary' if @filter == 'all'} #{'btn-outline-primary' unless @filter == 'all'}" do %>
+            All
+          <% end %>
+          <%= link_to notifications_path(filter: 'unread'), 
+              class: "btn #{'btn-primary' if @filter == 'unread'} #{'btn-outline-primary' unless @filter == 'unread'}" do %>
+            Unread <span class="badge bg-danger ms-1"><%= @unread_count if @unread_count > 0 %></span>
+          <% end %>
+          <%= link_to notifications_path(filter: 'system'), 
+              class: "btn #{'btn-primary' if @filter == 'system'} #{'btn-outline-primary' unless @filter == 'system'}" do %>
+            System
+          <% end %>
+          <%= link_to notifications_path(filter: 'social'), 
+              class: "btn #{'btn-primary' if @filter == 'social'} #{'btn-outline-primary' unless @filter == 'social'}" do %>
+            Social
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications List -->
+  <div class="row">
+    <div class="col-12">
+      <% if @notifications.any? %>
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+              <% @notifications.each do |notification| %>
+                <div class="list-group-item list-group-item-action <%= 'bg-light' if notification.unread? %> border-0">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center mb-2">
+                        <% if notification.actor.present? %>
+                          <%= image_tag notification.actor.avatar_url(:small), 
+                              class: "rounded-circle me-3", 
+                              style: "width: 40px; height: 40px; object-fit: cover;" %>
+                        <% else %>
+                          <div class="bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                               style="width: 40px; height: 40px;">
+                            <i class="fas fa-bell text-white"></i>
+                          </div>
+                        <% end %>
+                        
+                        <div class="flex-grow-1">
+                          <h6 class="mb-1 fw-semibold">
+                            <%= notification.title %>
+                            <% if notification.unread? %>
+                              <span class="badge bg-primary ms-2">New</span>
+                            <% end %>
+                          </h6>
+                          <p class="mb-1 text-muted small">
+                            <%= notification.message %>
+                          </p>
+                          <small class="text-muted">
+                            <%= time_ago_in_words(notification.created_at) %> ago
+                            <% if notification.priority != 'normal' %>
+                              • <span class="badge bg-<%= notification.priority == 'urgent' ? 'danger' : (notification.priority == 'high' ? 'warning' : 'secondary') %>">
+                                <%= notification.priority.humanize %>
+                              </span>
+                            <% end %>
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="dropdown">
+                      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                              type="button" 
+                              data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <% if notification.unread? %>
+                          <li>
+                            <%= link_to mark_as_read_notification_path(notification), 
+                                method: :patch, 
+                                class: "dropdown-item" do %>
+                              <i class="fas fa-check me-2"></i>Mark as read
+                            <% end %>
+                          </li>
+                        <% else %>
+                          <li>
+                            <%= link_to mark_as_unread_notification_path(notification), 
+                                method: :patch, 
+                                class: "dropdown-item" do %>
+                              <i class="fas fa-envelope me-2"></i>Mark as unread
+                            <% end %>
+                          </li>
+                        <% end %>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                          <%= link_to notification_path(notification), 
+                              method: :delete, 
+                              class: "dropdown-item text-danger",
+                              data: { 
+                                confirm: "Are you sure you want to delete this notification?" 
+                              } do %>
+                            <i class="fas fa-trash me-2"></i>Delete
+                          <% end %>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <% if respond_to?(:paginate) %>
+          <div class="d-flex justify-content-center mt-4">
+            <%= paginate @notifications, theme: 'twitter-bootstrap-4' %>
+          </div>
+        <% end %>
+
+      <% else %>
+        <!-- Empty State -->
+        <div class="card">
+          <div class="card-body text-center py-5">
+            <div class="mb-4">
+              <i class="fas fa-bell-slash fa-4x text-muted"></i>
+            </div>
+            <h4 class="text-muted mb-3">No notifications found</h4>
+            <p class="text-muted mb-4">
+              <% if @filter == 'unread' %>
+                You don't have any unread notifications. Great job staying on top of things!
+              <% elsif @filter == 'system' %>
+                No system notifications at this time.
+              <% elsif @filter == 'social' %>
+                No social notifications yet. Start following people and engaging with content!
+              <% else %>
+                You don't have any notifications yet. We'll notify you when something interesting happens.
+              <% end %>
+            </p>
+            <%= link_to dashboard_path, class: "btn btn-primary" do %>
+              <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Bulk Actions -->
+  <% if @notifications.any? && @unread_count > 0 %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card bg-light">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted">
+                <i class="fas fa-tasks me-2"></i>Bulk Actions
+              </span>
+              <div>
+                <%= button_to mark_all_as_read_notifications_path, 
+                    method: :patch, 
+                    class: "btn btn-sm btn-success me-2",
+                    data: { confirm: "Mark all notifications as read?" } do %>
+                  <i class="fas fa-check-double me-1"></i>Mark All as Read
+                <% end %>
+                <%= button_to clear_all_notifications_path, 
+                    method: :delete, 
+                    class: "btn btn-sm btn-outline-danger",
+                    data: { confirm: "This will delete all your notifications. Are you sure?" } do %>
+                  <i class="fas fa-trash me-1"></i>Clear All
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<style>
+.notifications-container .list-group-item {
+  transition: all 0.2s ease;
+}
+
+.notifications-container .list-group-item:hover {
+  background-color: var(--bs-light) !important;
+}
+
+.notifications-container .bg-light {
+  border-left: 4px solid var(--bs-primary);
+}
+</style>

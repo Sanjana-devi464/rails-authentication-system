@@ -1,0 +1,168 @@
+<!-- Notification List Partial -->
+<% if notifications.any? %>
+  <div class="notifications-list">
+    <% notifications.each do |notification| %>
+      <div class="notification-item <%= 'unread' if notification.read_at.blank? %> priority-<%= notification.priority %> p-3 mb-3 rounded shadow-sm">
+        <div class="d-flex align-items-start">
+          <!-- Notification Icon -->
+          <div class="notification-icon bg-<%= notification_type_color(notification.notification_type) %> text-white flex-shrink-0">
+            <i class="fas fa-<%= notification_type_icon(notification.notification_type) %>"></i>
+          </div>
+
+          <!-- Notification Content -->
+          <div class="flex-grow-1">
+            <%= link_to notification_path(notification), 
+                class: "text-decoration-none notification-link #{'text-dark fw-bold' if notification.read_at.blank?}",
+                data: { notification_id: notification.id } do %>
+              
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="mb-0 <%= 'fw-bold' if notification.read_at.blank? %>">
+                  <%= notification.title %>
+                  <% if notification.read_at.blank? %>
+                    <span class="badge bg-warning ms-2">New</span>
+                  <% end %>
+                  <% if notification.priority == 'urgent' %>
+                    <span class="badge bg-danger ms-2">
+                      <i class="fas fa-exclamation-triangle me-1"></i>Urgent
+                    </span>
+                  <% elsif notification.priority == 'high' %>
+                    <span class="badge bg-warning ms-2">High</span>
+                  <% end %>
+                </h6>
+                <small class="text-muted">
+                  <%= time_ago_in_words(notification.created_at) %> ago
+                </small>
+              </div>
+
+              <p class="mb-2 text-muted">
+                <%= truncate(notification.message, length: 120) %>
+              </p>
+
+              <!-- Notification Meta -->
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="notification-meta text-muted small">
+                  <span class="me-3">
+                    <i class="fas fa-tag me-1"></i>
+                    <%= notification.notification_type.humanize %>
+                  </span>
+                  <% if notification.actor.present? %>
+                    <span class="me-3">
+                      <i class="fas fa-user me-1"></i>
+                      from <%= notification.actor.display_name %>
+                    </span>
+                  <% end %>
+                  <% if notification.notifiable.present? %>
+                    <span>
+                      <i class="fas fa-link me-1"></i>
+                      <%= notification.notifiable_type %>
+                    </span>
+                  <% end %>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="notification-actions">
+                  <% if notification.read_at.blank? %>
+                    <%= link_to mark_as_read_notification_path(notification), 
+                        method: :patch, 
+                        class: "btn btn-sm btn-outline-success me-1",
+                        title: "Mark as read",
+                        onclick: "event.stopPropagation();" do %>
+                      <i class="fas fa-check"></i>
+                    <% end %>
+                  <% else %>
+                    <%= link_to mark_as_unread_notification_path(notification), 
+                        method: :patch, 
+                        class: "btn btn-sm btn-outline-warning me-1",
+                        title: "Mark as unread",
+                        onclick: "event.stopPropagation();" do %>
+                      <i class="fas fa-envelope"></i>
+                    <% end %>
+                  <% end %>
+                  
+                  <%= link_to notification_path(notification), 
+                      method: :delete, 
+                      class: "btn btn-sm btn-outline-danger",
+                      title: "Delete notification",
+                      data: { confirm: "Delete this notification?" },
+                      onclick: "event.stopPropagation();" do %>
+                    <i class="fas fa-trash"></i>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <!-- Empty State -->
+  <div class="text-center py-5">
+    <div class="empty-state">
+      <i class="fas fa-bell-slash fa-5x text-muted mb-4"></i>
+      <h4 class="text-muted mb-3">No notifications</h4>
+      <p class="text-muted">
+        You're all caught up! New notifications will appear here when they arrive.
+      </p>
+    </div>
+  </div>
+<% end %>
+
+<!-- Helper methods for notification styling -->
+<%
+  def notification_type_color(type)
+    case type
+    when 'welcome', 'account_verified', 'feature_announcement'
+      'success'
+    when 'password_changed', 'security_alert', 'account_warning'
+      'danger'
+    when 'new_follower', 'post_liked', 'post_commented', 'mentioned'
+      'primary'
+    when 'new_post_from_followed', 'post_updated', 'content_featured'
+      'info'
+    when 'role_changed', 'maintenance'
+      'warning'
+    else
+      'secondary'
+    end
+  end
+
+  def notification_type_icon(type)
+    case type
+    when 'welcome'
+      'hand-wave'
+    when 'account_verified'
+      'check-circle'
+    when 'password_changed'
+      'key'
+    when 'security_alert'
+      'shield-alt'
+    when 'new_follower'
+      'user-plus'
+    when 'post_liked'
+      'heart'
+    when 'post_commented'
+      'comment'
+    when 'mentioned'
+      'at'
+    when 'friend_request'
+      'user-friends'
+    when 'new_post_from_followed'
+      'file-alt'
+    when 'post_updated'
+      'edit'
+    when 'content_featured'
+      'star'
+    when 'role_changed'
+      'user-tag'
+    when 'account_warning'
+      'exclamation-triangle'
+    when 'feature_announcement'
+      'bullhorn'
+    when 'maintenance'
+      'tools'
+    else
+      'bell'
+    end
+  end
+%>

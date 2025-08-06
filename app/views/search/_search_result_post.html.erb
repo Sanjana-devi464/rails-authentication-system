@@ -1,0 +1,45 @@
+<!-- Search Result Post Card -->
+<div class="card border-0 shadow-sm search-result-card h-100" onclick="window.location.href='<%= post_path(post) %>'">
+  <div class="card-body">
+    <!-- Post Header -->
+    <div class="d-flex align-items-center mb-3">
+      <%= image_tag post.user.avatar_url(:small), 
+          class: "rounded-circle me-2", 
+          style: "width: 30px; height: 30px;" %>
+      <div class="flex-grow-1">
+        <h6 class="mb-0 text-muted small">
+          <%= post.user.display_name %>
+        </h6>
+        <small class="text-muted">
+          <%= time_ago_in_words(post.created_at) %> ago
+        </small>
+      </div>
+      <span class="badge bg-success">Post</span>
+    </div>
+
+    <!-- Post Content -->
+    <h5 class="card-title mb-2">
+      <%= highlight(post.title, query, highlighter: '<span class="highlight">\1</span>').html_safe %>
+    </h5>
+    
+    <p class="card-text text-muted mb-3">
+      <%= highlight(truncate(strip_tags(post.body), length: 100), query, highlighter: '<span class="highlight">\1</span>').html_safe %>
+    </p>
+
+    <!-- Post Meta -->
+    <div class="d-flex justify-content-between align-items-center text-muted small">
+      <span>
+        <i class="fas fa-comments me-1"></i>
+        <%= post.comments.count %>
+      </span>
+      <span>
+        <i class="fas fa-clock me-1"></i>
+        <%= post.reading_time %>
+      </span>
+      <span>
+        <i class="fas fa-calendar-alt me-1"></i>
+        <%= post.created_at.strftime('%b %d') %>
+      </span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,46 @@
+<%# Simple Trix Test Page %>
+<% content_for :title, "Simple Trix Test" %>
+
+<div class="container py-4">
+  <h1>Simple Trix Editor Test</h1>
+  
+  <%= form_with model: @post, local: true do |form| %>
+    <div class="mb-3">
+      <%= form.label :title, "Title", class: "form-label" %>
+      <%= form.text_field :title, class: "form-control", placeholder: "Enter title" %>
+    </div>
+    
+    <div class="mb-3">
+      <%= form.label :body, "Content", class: "form-label" %>
+      <%= form.hidden_field :body, id: "simple_body" %>
+      <trix-editor input="simple_body" placeholder="Type your content here..."></trix-editor>
+    </div>
+    
+    <%= form.submit "Save", class: "btn btn-primary" %>
+  <% end %>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const editor = document.querySelector('trix-editor')
+  const hiddenField = document.getElementById('simple_body')
+  
+  if (editor) {
+    console.log('Editor found:', editor)
+    
+    editor.addEventListener('trix-initialize', function() {
+      console.log('Trix initialized successfully')
+    })
+    
+    editor.addEventListener('trix-change', function() {
+      console.log('Content changed')
+      if (hiddenField) {
+        hiddenField.value = editor.innerHTML
+        console.log('Synced to hidden field:', hiddenField.value.substring(0, 50))
+      }
+    })
+  } else {
+    console.error('No editor found')
+  }
+})
+</script>

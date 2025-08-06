@@ -1,0 +1,41 @@
+<!-- Search Result Comment Card -->
+<div class="card border-0 shadow-sm search-result-card mb-3" onclick="window.location.href='<%= post_path(comment.post) %>#comment-<%= comment.id %>'">
+  <div class="card-body">
+    <!-- Comment Header -->
+    <div class="d-flex align-items-center mb-2">
+      <%= image_tag comment.user.avatar_url(:small), 
+          class: "rounded-circle me-2", 
+          style: "width: 30px; height: 30px;" %>
+      <div class="flex-grow-1">
+        <h6 class="mb-0 small">
+          <%= highlight(comment.user.display_name, query, highlighter: '<span class="highlight">\1</span>').html_safe %>
+          <span class="text-muted">commented on</span>
+          <%= link_to comment.post.title, post_path(comment.post), class: "text-primary text-decoration-none" %>
+        </h6>
+        <small class="text-muted">
+          <%= time_ago_in_words(comment.created_at) %> ago
+        </small>
+      </div>
+      <span class="badge bg-info">Comment</span>
+    </div>
+
+    <!-- Comment Content -->
+    <div class="comment-content">
+      <p class="mb-2">
+        <%= highlight(truncate(comment.content, length: 150), query, highlighter: '<span class="highlight">\1</span>').html_safe %>
+      </p>
+    </div>
+
+    <!-- Comment Meta -->
+    <div class="d-flex justify-content-between align-items-center text-muted small">
+      <span>
+        <i class="fas fa-quote-left me-1"></i>
+        In: <%= truncate(comment.post.title, length: 30) %>
+      </span>
+      <span>
+        <i class="fas fa-calendar-alt me-1"></i>
+        <%= comment.created_at.strftime('%b %d, %Y') %>
+      </span>
+    </div>
+  </div>
+</div>
