@@ -1,0 +1,245 @@
+<% content_for :title, "Admin Dashboard" %>
+
+<div class="row">
+  <!-- Statistics Cards -->
+  <div class="col-md-3 mb-4">
+    <div class="stat-card">
+      <div class="stat-number"><%= @stats[:total_users] %></div>
+      <div class="stat-label">Total Users</div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-4">
+    <div class="stat-card">
+      <div class="stat-number"><%= @stats[:total_posts] %></div>
+      <div class="stat-label">Total Posts</div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-4">
+    <div class="stat-card">
+      <div class="stat-number"><%= @stats[:total_comments] %></div>
+      <div class="stat-label">Total Comments</div>
+    </div>
+  </div>
+  
+  <div class="col-md-3 mb-4">
+    <div class="stat-card">
+      <div class="stat-number"><%= @stats[:online_users] %></div>
+      <div class="stat-label">Users Online</div>
+    </div>
+  </div>
+</div>
+
+<!-- Monthly Stats -->
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card admin-card">
+      <div class="card-body text-center">
+        <h5 class="card-title">This Month</h5>
+        <div class="row">
+          <div class="col">
+            <h6 class="text-primary"><%= @stats[:users_this_month] %></h6>
+            <small class="text-muted">New Users</small>
+          </div>
+          <div class="col">
+            <h6 class="text-success"><%= @stats[:posts_this_month] %></h6>
+            <small class="text-muted">New Posts</small>
+          </div>
+          <div class="col">
+            <h6 class="text-info"><%= @stats[:comments_this_month] %></h6>
+            <small class="text-muted">New Comments</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card admin-card">
+      <div class="card-body">
+        <h5 class="card-title">Quick Actions</h5>
+        <div class="d-grid gap-2">
+          <%= link_to admin_users_path, class: "btn btn-admin btn-sm" do %>
+            <i class="fas fa-users me-1"></i> Manage Users
+          <% end %>
+          <%= link_to admin_posts_path, class: "btn btn-admin btn-sm" do %>
+            <i class="fas fa-file-alt me-1"></i> Manage Posts
+          <% end %>
+          <%= link_to admin_analytics_path, class: "btn btn-admin btn-sm" do %>
+            <i class="fas fa-chart-bar me-1"></i> View Analytics
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card admin-card">
+      <div class="card-body">
+        <h5 class="card-title">System Status</h5>
+        <div class="mb-2">
+          <small class="text-muted">Total Activities:</small>
+          <strong class="ms-1"><%= @stats[:total_activities] %></strong>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted">Environment:</small>
+          <span class="badge bg-<%= Rails.env.production? ? 'danger' : 'warning' %> ms-1">
+            <%= Rails.env.capitalize %>
+          </span>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted">Rails Version:</small>
+          <strong class="ms-1"><%= Rails.version %></strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+  <!-- Recent Users -->
+  <div class="col-md-6 mb-4">
+    <div class="card admin-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Users</h5>
+        <%= link_to admin_users_path, class: "btn btn-outline-primary btn-sm" do %>
+          View All <i class="fas fa-arrow-right ms-1"></i>
+        <% end %>
+      </div>
+      <div class="card-body">
+        <% if @recent_users.any? %>
+          <% @recent_users.each do |user| %>
+            <div class="d-flex align-items-center mb-2">
+              <div class="flex-grow-1">
+                <strong><%= user.display_name %></strong>
+                <small class="text-muted d-block"><%= user.email %></small>
+              </div>
+              <div>
+                <small class="text-muted">
+                  <%= time_ago_in_words(user.created_at) %> ago
+                </small>
+                <% if user.admin? %>
+                  <span class="badge bg-danger ms-1">Admin</span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-muted">No recent users</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Recent Posts -->
+  <div class="col-md-6 mb-4">
+    <div class="card admin-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Posts</h5>
+        <%= link_to admin_posts_path, class: "btn btn-outline-primary btn-sm" do %>
+          View All <i class="fas fa-arrow-right ms-1"></i>
+        <% end %>
+      </div>
+      <div class="card-body">
+        <% if @recent_posts.any? %>
+          <% @recent_posts.each do |post| %>
+            <div class="d-flex align-items-center mb-2">
+              <div class="flex-grow-1">
+                <strong><%= link_to post.title, post_path(post), class: "text-decoration-none" %></strong>
+                <small class="text-muted d-block">by <%= post.user.display_name %></small>
+              </div>
+              <div>
+                <span class="badge bg-<%= post.published? ? 'success' : 'warning' %>">
+                  <%= post.status.capitalize %>
+                </span>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-muted">No recent posts</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Comments -->
+<div class="row">
+  <div class="col-md-12 mb-4">
+    <div class="card admin-card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Comments</h5>
+        <%= link_to admin_comments_path, class: "btn btn-outline-primary btn-sm" do %>
+          View All <i class="fas fa-arrow-right ms-1"></i>
+        <% end %>
+      </div>
+      <div class="card-body">
+        <% if @recent_comments.any? %>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Author</th>
+                  <th>Post</th>
+                  <th>Comment</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @recent_comments.each do |comment| %>
+                  <tr>
+                    <td><%= comment.user.display_name %></td>
+                    <td>
+                      <%= link_to comment.post.title.truncate(30), post_path(comment.post), 
+                          class: "text-decoration-none" %>
+                    </td>
+                    <td><%= comment.content.truncate(50) %></td>
+                    <td>
+                      <small class="text-muted">
+                        <%= time_ago_in_words(comment.created_at) %> ago
+                      </small>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="text-muted">No recent comments</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0">Recent System Activities</h5>
+      </div>
+      <div class="card-body">
+        <% if @recent_activities.any? %>
+          <% @recent_activities.each do |activity| %>
+            <div class="d-flex align-items-center mb-2 pb-2 border-bottom">
+              <div class="flex-grow-1">
+                <strong><%= activity.user.display_name %></strong>
+                <span class="ms-2"><%= activity.formatted_description %></span>
+              </div>
+              <div>
+                <small class="text-muted">
+                  <%= time_ago_in_words(activity.created_at) %> ago
+                </small>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-muted">No recent activities</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

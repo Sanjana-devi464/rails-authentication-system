@@ -173,6 +173,102 @@
       </div>
     </div>
 
+    <!-- Enhanced Statistics Card -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-line text-primary me-2"></i>
+          Profile Statistics
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="stats-grid">
+          <div class="row text-center">
+            <div class="col-6 mb-3">
+              <div class="stat-box p-3 rounded bg-light">
+                <h4 class="text-primary mb-1"><%= @user_stats[:total_posts] %></h4>
+                <small class="text-muted">Total Posts</small>
+              </div>
+            </div>
+            <div class="col-6 mb-3">
+              <div class="stat-box p-3 rounded bg-light">
+                <h4 class="text-success mb-1"><%= @user_stats[:published_posts] %></h4>
+                <small class="text-muted">Published</small>
+              </div>
+            </div>
+            <div class="col-6 mb-3">
+              <div class="stat-box p-3 rounded bg-light">
+                <h4 class="text-info mb-1"><%= @user_stats[:total_comments] %></h4>
+                <small class="text-muted">Comments</small>
+              </div>
+            </div>
+            <div class="col-6 mb-3">
+              <div class="stat-box p-3 rounded bg-light">
+                <h4 class="text-warning mb-1"><%= @user_stats[:activity_score] %></h4>
+                <small class="text-muted">Activity Score</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="detailed-stats mt-3">
+            <div class="stat-item d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted">
+                <i class="fas fa-calendar-alt me-2"></i>Member since
+              </span>
+              <strong><%= @user_stats[:member_since].strftime('%B %Y') %></strong>
+            </div>
+            <div class="stat-item d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted">
+                <i class="fas fa-eye me-2"></i>Profile views
+              </span>
+              <strong><%= @user_stats[:profile_views] %></strong>
+            </div>
+            <% if @user_stats[:last_activity] %>
+              <div class="stat-item d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted">
+                  <i class="fas fa-clock me-2"></i>Last activity
+                </span>
+                <strong><%= time_ago_in_words(@user_stats[:last_activity]) %> ago</strong>
+              </div>
+            <% end %>
+            <div class="stat-item d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted">
+                <i class="fas fa-star me-2"></i>Most active day
+              </span>
+              <strong><%= @user_stats[:most_active_day] %></strong>
+            </div>
+            <% if @user_stats[:avg_comments_per_post] > 0 %>
+              <div class="stat-item d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted">
+                  <i class="fas fa-comments me-2"></i>Avg comments/post
+                </span>
+                <strong><%= @user_stats[:avg_comments_per_post] %></strong>
+              </div>
+            <% end %>
+          </div>
+          
+          <!-- This Month Activity -->
+          <div class="monthly-stats mt-3 pt-3 border-top">
+            <h6 class="text-muted mb-3">This Month</h6>
+            <div class="row text-center">
+              <div class="col-6">
+                <div class="mini-stat">
+                  <span class="badge bg-primary fs-6"><%= @user_stats[:posts_this_month] %></span>
+                  <small class="d-block text-muted">Posts</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="mini-stat">
+                  <span class="badge bg-info fs-6"><%= @user_stats[:comments_this_month] %></span>
+                  <small class="d-block text-muted">Comments</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Skills & Interests -->
     <% if @user.profile&.skills.present? || @user.profile&.interests.present? %>
       <div class="card border-0 shadow-sm mb-4">
@@ -277,6 +373,12 @@
             </button>
           </li>
           <li class="nav-item" role="presentation">
+            <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab">
+              <i class="fas fa-comments me-1"></i>
+              Comments (<%= @user.comments.count %>)
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
             <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab">
               <i class="fas fa-history me-1"></i>
               Activity
@@ -298,28 +400,49 @@
     <div class="tab-content" id="profileTabsContent">
       <!-- Posts Tab -->
       <div class="tab-pane fade show active" id="posts" role="tabpanel">
-        <% if @user.posts.published.any? %>
+        <% if @recent_posts.any? %>
           <div class="row">
-            <% @user.posts.published.recent.limit(6).each do |post| %>
+            <% @recent_posts.each do |post| %>
               <div class="col-md-6 mb-4">
                 <div class="card border-0 shadow-sm hover-lift h-100">
                   <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge bg-<%= post.published? ? 'success' : 'warning' %> mb-2">
+                        <%= post.status.humanize %>
+                      </span>
+                      <small class="text-muted">
+                        <i class="fas fa-eye me-1"></i>
+                        <%= post.reading_time %>
+                      </small>
+                    </div>
                     <h5 class="card-title">
                       <%= link_to post.title, post_path(post), 
                           class: "text-decoration-none text-dark hover-primary" %>
                     </h5>
                     <p class="card-text text-muted">
-                      <%= truncate(strip_tags(post.body), length: 100) %>
+                      <%= truncate(strip_tags(post.body), length: 120) %>
                     </p>
-                    <div class="d-flex justify-content-between align-items-center text-muted small">
-                      <span>
-                        <i class="fas fa-calendar-alt me-1"></i>
-                        <%= time_ago_in_words(post.created_at) %> ago
-                      </span>
-                      <span>
-                        <i class="fas fa-comments me-1"></i>
-                        <%= post.comments.count %>
-                      </span>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="post-stats text-muted small">
+                        <span class="me-3">
+                          <i class="fas fa-calendar-alt me-1"></i>
+                          <%= time_ago_in_words(post.created_at) %> ago
+                        </span>
+                        <span class="me-3">
+                          <i class="fas fa-comments me-1"></i>
+                          <%= post.comments.count %> comments
+                        </span>
+                        <span>
+                          <i class="fas fa-heart me-1"></i>
+                          0 likes
+                        </span>
+                      </div>
+                      <div>
+                        <%= link_to post_path(post), class: "btn btn-sm btn-outline-primary" do %>
+                          <i class="fas fa-eye me-1"></i>
+                          Read
+                        <% end %>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -347,6 +470,77 @@
               <% end %>
             <% else %>
               <p class="text-muted">This user hasn't published any posts yet.</p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Comments Tab -->
+      <div class="tab-pane fade" id="comments" role="tabpanel">
+        <% if @recent_comments.any? %>
+          <div class="comments-list">
+            <% @recent_comments.each do |comment| %>
+              <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <small class="text-muted">
+                      <i class="fas fa-clock me-1"></i>
+                      <%= time_ago_in_words(comment.created_at) %> ago
+                    </small>
+                    <span class="badge bg-light text-dark">
+                      <i class="fas fa-quote-left me-1"></i>
+                      Comment
+                    </span>
+                  </div>
+                  
+                  <div class="comment-content mb-3">
+                    <p class="mb-2"><%= simple_format(truncate(comment.content, length: 200)) %></p>
+                  </div>
+                  
+                  <div class="comment-meta">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="post-reference">
+                        <small class="text-muted">
+                          <i class="fas fa-arrow-right me-1"></i>
+                          On post: 
+                          <%= link_to comment.post.title, post_path(comment.post), 
+                              class: "text-decoration-none fw-medium" %>
+                        </small>
+                      </div>
+                      <div>
+                        <%= link_to post_path(comment.post, anchor: "comment-#{comment.id}"), 
+                            class: "btn btn-sm btn-outline-primary" do %>
+                          <i class="fas fa-external-link-alt me-1"></i>
+                          View
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+          
+          <% if @user.comments.count > 6 %>
+            <div class="text-center mt-4">
+              <button class="btn btn-outline-primary" onclick="loadMoreComments()">
+                <i class="fas fa-chevron-down me-1"></i>
+                View All Comments (<%= @user.comments.count %>)
+              </button>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="text-center py-5">
+            <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">No comments yet</h5>
+            <% if current_user == @user %>
+              <p class="text-muted mb-3">Start engaging with the community by commenting on posts!</p>
+              <%= link_to posts_path, class: "btn btn-primary" do %>
+                <i class="fas fa-search me-1"></i>
+                Explore Posts
+              <% end %>
+            <% else %>
+              <p class="text-muted">This user hasn't made any comments yet.</p>
             <% end %>
           </div>
         <% end %>
@@ -561,6 +755,84 @@
   .interest-tags .badge:hover {
     transform: scale(1.1);
   }
+
+  /* Enhanced Statistics Styles */
+  .stats-grid .stat-box {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+  }
+
+  .stats-grid .stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    border-color: var(--bs-primary);
+  }
+
+  .detailed-stats .stat-item {
+    padding: 8px 0;
+    transition: all 0.2s ease;
+  }
+
+  .detailed-stats .stat-item:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    border-radius: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .mini-stat {
+    text-align: center;
+  }
+
+  .mini-stat .badge {
+    font-size: 1rem;
+    padding: 8px 12px;
+  }
+
+  /* Comments Tab Styles */
+  .comments-list .card {
+    transition: all 0.3s ease;
+  }
+
+  .comments-list .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .comment-content {
+    line-height: 1.6;
+  }
+
+  .post-reference a:hover {
+    color: var(--bs-primary) !important;
+  }
+
+  /* Tab Content Animation */
+  .tab-pane {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .profile-stats .stat-item {
+      font-size: 0.9rem;
+    }
+    
+    .stats-grid .row > div {
+      margin-bottom: 1rem;
+    }
+  }
 </style>
 
 <!-- JavaScript Functions -->
@@ -574,4 +846,32 @@
     // Implement messaging functionality
     alert('Messaging functionality will be implemented soon!');
   }
+
+  function loadMoreComments() {
+    // Implement load more comments functionality
+    alert('Load more comments functionality will be implemented soon!');
+  }
+
+  // Initialize tab animations
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        // Add loading animation or additional functionality here
+        console.log('Tab switched to:', this.getAttribute('data-bs-target'));
+      });
+    });
+
+    // Add hover effects to statistics cards
+    const statBoxes = document.querySelectorAll('.stat-box');
+    statBoxes.forEach(box => {
+      box.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px) scale(1.02)';
+      });
+      
+      box.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+      });
+    });
+  });
 </script>

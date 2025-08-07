@@ -33,8 +33,10 @@ class ApplicationController < ActionController::Base
       edit_user_registration_path(welcome: true)
     elsif session[:return_to].present?
       session.delete(:return_to)
+    elsif resource.email == 'sanjanade464@gmail.com'
+      admin_path
     elsif resource.admin?
-      admin_dashboard_path rescue dashboard_path
+      admin_path rescue dashboard_path
     else
       dashboard_path
     end

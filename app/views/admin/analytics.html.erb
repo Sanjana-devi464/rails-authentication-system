@@ -1,0 +1,253 @@
+<% content_for :title, "System Analytics" %>
+
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h2>System Analytics</h2>
+    <p class="text-muted">Comprehensive platform statistics and insights</p>
+  </div>
+  <div class="col-md-4 text-end">
+    <div class="btn-group" role="group">
+      <%= link_to admin_path, class: "btn btn-outline-secondary btn-sm" do %>
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- User Analytics -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-users me-2"></i>User Analytics</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 text-center">
+            <h3 class="text-primary"><%= @user_analytics[:total_users] %></h3>
+            <small class="text-muted">Total Users</small>
+          </div>
+          <div class="col-md-3 text-center">
+            <h3 class="text-success"><%= @user_analytics[:active_users] %></h3>
+            <small class="text-muted">Active Users (7 days)</small>
+          </div>
+          <div class="col-md-3 text-center">
+            <h3 class="text-info"><%= @user_analytics[:new_users_this_month] %></h3>
+            <small class="text-muted">New Users (30 days)</small>
+          </div>
+          <div class="col-md-3 text-center">
+            <h3 class="text-warning">
+              <%= (@user_analytics[:active_users].to_f / @user_analytics[:total_users] * 100).round(1) %>%
+            </h3>
+            <small class="text-muted">Activity Rate</small>
+          </div>
+        </div>
+        
+        <hr>
+        
+        <!-- Users by Role -->
+        <h6 class="mb-3">Users by Role</h6>
+        <div class="row">
+          <% @user_analytics[:users_by_role].each do |role_data| %>
+            <div class="col-md-3 mb-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="badge bg-secondary"><%= role_data[:name].capitalize %></span>
+                <strong><%= role_data[:count] %></strong>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Content Analytics -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Content Analytics</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 text-center">
+            <h3 class="text-primary"><%= @content_analytics[:total_posts] %></h3>
+            <small class="text-muted">Total Posts</small>
+          </div>
+          <div class="col-md-3 text-center">
+            <h3 class="text-success"><%= @content_analytics[:published_posts] %></h3>
+            <small class="text-muted">Published Posts</small>
+          </div>
+          <div class="col-md-3 text-center">
+            <h3 class="text-warning"><%= @content_analytics[:draft_posts] %></h3>
+            <small class="text-muted">Draft Posts</small>
+          </div>
+          <div class="col-md-3 text-center">
+            <h3 class="text-info"><%= @content_analytics[:total_comments] %></h3>
+            <small class="text-muted">Total Comments</small>
+          </div>
+        </div>
+        
+        <hr>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="mb-3">Publication Rate</h6>
+            <div class="progress mb-2">
+              <% publication_rate = @content_analytics[:total_posts] > 0 ? (@content_analytics[:published_posts].to_f / @content_analytics[:total_posts] * 100).round(1) : 0 %>
+              <div class="progress-bar bg-success" role="progressbar" 
+                   style="width: <%= publication_rate %>%" 
+                   aria-valuenow="<%= publication_rate %>" 
+                   aria-valuemin="0" aria-valuemax="100">
+                <%= publication_rate %>%
+              </div>
+            </div>
+            <small class="text-muted">Posts that are published vs drafts</small>
+          </div>
+          <div class="col-md-6">
+            <h6 class="mb-3">Engagement</h6>
+            <div class="d-flex justify-content-between">
+              <span>Average Comments per Post:</span>
+              <strong><%= @content_analytics[:avg_comments_per_post] %></strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Activity Analytics -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Activity Analytics</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4 text-center">
+            <h3 class="text-primary"><%= @activity_analytics[:total_activities] %></h3>
+            <small class="text-muted">Total Activities</small>
+          </div>
+          <div class="col-md-4 text-center">
+            <h3 class="text-success"><%= @activity_analytics[:activities_this_month] %></h3>
+            <small class="text-muted">Activities This Month</small>
+          </div>
+          <div class="col-md-4 text-center">
+            <h3 class="text-info">
+              <%= @activity_analytics[:total_activities] > 0 ? (@activity_analytics[:activities_this_month].to_f / @activity_analytics[:total_activities] * 100).round(1) : 0 %>%
+            </h3>
+            <small class="text-muted">Monthly Activity Rate</small>
+          </div>
+        </div>
+        
+        <hr>
+        
+        <!-- Most Active Users -->
+        <h6 class="mb-3">Most Active Users</h6>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Username</th>
+                <th>Activities</th>
+                <th>Activity Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @activity_analytics[:most_active_users].each_with_index do |(username, count), index| %>
+                <tr>
+                  <td>
+                    <% if index == 0 %>
+                      <i class="fas fa-crown text-warning"></i>
+                    <% elsif index == 1 %>
+                      <i class="fas fa-medal text-secondary"></i>
+                    <% elsif index == 2 %>
+                      <i class="fas fa-award text-warning"></i>
+                    <% else %>
+                      <%= index + 1 %>
+                    <% end %>
+                  </td>
+                  <td><strong><%= username %></strong></td>
+                  <td><span class="badge bg-primary"><%= count %></span></td>
+                  <td>
+                    <% max_activities = @activity_analytics[:most_active_users].first&.last || 1 %>
+                    <% activity_percentage = (count.to_f / max_activities * 100).round %>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar" role="progressbar" 
+                           style="width: <%= activity_percentage %>%"></div>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Growth Metrics -->
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Growth Metrics</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <span>User Growth (30 days):</span>
+            <strong class="text-success">+<%= @user_analytics[:new_users_this_month] %></strong>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <span>Content Growth (30 days):</span>
+            <strong class="text-primary">
+              +<%= Post.where(created_at: 1.month.ago..Time.current).count %>
+            </strong>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <span>Comment Growth (30 days):</span>
+            <strong class="text-info">
+              +<%= Comment.where(created_at: 1.month.ago..Time.current).count %>
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Activity</h5>
+      </div>
+      <div class="card-body">
+        <% recent_activities = UserActivity.includes(:user).order(created_at: :desc).limit(5) %>
+        <% if recent_activities.any? %>
+          <% recent_activities.each do |activity| %>
+            <div class="d-flex align-items-center mb-2 pb-2 border-bottom">
+              <div class="flex-grow-1">
+                <small class="fw-bold"><%= activity.user.display_name %></small>
+                <small class="d-block text-muted"><%= activity.formatted_description %></small>
+              </div>
+              <small class="text-muted">
+                <%= time_ago_in_words(activity.created_at) %> ago
+              </small>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-muted">No recent activities</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

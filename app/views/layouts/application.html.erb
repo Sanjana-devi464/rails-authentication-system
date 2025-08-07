@@ -54,6 +54,12 @@
                 <ul class="dropdown-menu">
                   <li><%= link_to "Dashboard", dashboard_path, class: "dropdown-item" %></li>
                   <li><%= link_to "Edit Profile", edit_user_registration_path, class: "dropdown-item" %></li>
+                  <% if current_user.email == 'sanjanade464@gmail.com' %>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><%= link_to admin_path, class: "dropdown-item text-warning" do %>
+                      🛡️ Admin Panel
+                    <% end %></li>
+                  <% end %>
                   <li><hr class="dropdown-divider"></li>
                   <li>
                     <%= form_with url: destroy_user_session_path, method: :delete, local: true, class: "d-inline" do %>

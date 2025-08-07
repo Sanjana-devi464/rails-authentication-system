@@ -1,0 +1,185 @@
+<% content_for :title, "User Management" %>
+
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h2>User Management</h2>
+    <p class="text-muted">Manage all registered users in the system</p>
+  </div>
+  <div class="col-md-4 text-end">
+    <div class="btn-group" role="group">
+      <%= link_to admin_path, class: "btn btn-outline-secondary btn-sm" do %>
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Statistics Row -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card admin-card text-center">
+      <div class="card-body">
+        <h4 class="text-primary"><%= @total_users %></h4>
+        <small class="text-muted">Total Users</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card admin-card text-center">
+      <div class="card-body">
+        <h4 class="text-danger"><%= @admin_users %></h4>
+        <small class="text-muted">Admin Users</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card admin-card text-center">
+      <div class="card-body">
+        <h4 class="text-success"><%= @recent_registrations %></h4>
+        <small class="text-muted">This Week</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card admin-card text-center">
+      <div class="card-body">
+        <h4 class="text-info"><%= User.where('last_seen_at > ?', 15.minutes.ago).count %></h4>
+        <small class="text-muted">Online Now</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card admin-card mb-4">
+  <div class="card-body">
+    <%= search_form_for @q, url: admin_users_path, method: :get do |f| %>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <%= f.search_field :username_or_first_name_or_last_name_or_email_cont, 
+              placeholder: "Search users...", 
+              class: "form-control",
+              value: params.dig(:q, :username_or_first_name_or_last_name_or_email_cont) %>
+        </div>
+        <div class="col-md-2">
+          <%= f.select :created_at_gteq, 
+              options_for_select([
+                ['All Time', ''],
+                ['Last 7 days', 7.days.ago],
+                ['Last 30 days', 30.days.ago],
+                ['Last 3 months', 3.months.ago]
+              ], params.dig(:q, :created_at_gteq)),
+              {}, { class: "form-select" } %>
+        </div>
+        <div class="col-md-2">
+          <div class="form-check mt-2">
+            <%= f.check_box :last_seen_at_not_null, 
+                { checked: params.dig(:q, :last_seen_at_not_null) }, "1", "" %>
+            <%= f.label :last_seen_at_not_null, "Active users only", class: "form-check-label" %>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="btn-group w-100">
+            <%= f.submit "Search", class: "btn btn-admin" %>
+            <%= link_to "Reset", admin_users_path, class: "btn btn-outline-secondary" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Users Table -->
+<div class="card admin-card">
+  <div class="card-header">
+    <h5 class="mb-0">All Users (<%= @users.total_count %>)</h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th><%= sort_link(@q, :id, "ID") %></th>
+            <th><%= sort_link(@q, :username, "Username") %></th>
+            <th><%= sort_link(@q, :email, "Email") %></th>
+            <th>Full Name</th>
+            <th><%= sort_link(@q, :created_at, "Joined") %></th>
+            <th>Posts</th>
+            <th>Comments</th>
+            <th><%= sort_link(@q, :last_seen_at, "Last Seen") %></th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @users.each do |user| %>
+            <tr>
+              <td><%= user.id %></td>
+              <td>
+                <strong><%= user.username %></strong>
+                <% if user.admin? %>
+                  <span class="badge bg-danger ms-1">Admin</span>
+                <% end %>
+              </td>
+              <td><%= user.email %></td>
+              <td><%= user.full_name %></td>
+              <td>
+                <small><%= user.created_at.strftime('%b %d, %Y') %></small>
+              </td>
+              <td>
+                <span class="badge bg-primary"><%= user.posts.count %></span>
+              </td>
+              <td>
+                <span class="badge bg-info"><%= user.comments.count %></span>
+              </td>
+              <td>
+                <% if user.last_seen_at %>
+                  <small class="<%= user.online? ? 'text-success' : 'text-muted' %>">
+                    <%= time_ago_in_words(user.last_seen_at) %> ago
+                  </small>
+                <% else %>
+                  <small class="text-muted">Never</small>
+                <% end %>
+              </td>
+              <td>
+                <% if user.online? %>
+                  <span class="badge bg-success">Online</span>
+                <% else %>
+                  <span class="badge bg-secondary">Offline</span>
+                <% end %>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <%= link_to profile_path(user), class: "btn btn-outline-primary btn-sm", 
+                      title: "View Profile", target: "_blank" do %>
+                    👁️
+                  <% end %>
+                  <% unless user.admin? && user.email == 'sanjanade464@gmail.com' %>
+                    <%= link_to admin_destroy_user_path(user), 
+                        class: "btn btn-outline-danger btn-sm",
+                        title: "Delete User",
+                        method: :delete,
+                        data: { 
+                          confirm: "Are you sure you want to delete #{user.display_name}? This action cannot be undone and will delete all their posts and comments." 
+                        } do %>
+                      🗑️
+                    <% end %>
+                  <% else %>
+                    <span class="btn btn-outline-secondary btn-sm disabled" title="Cannot delete super admin">
+                      🛡️
+                    </span>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Pagination -->
+  <div class="card-footer">
+    <%= paginate @users, theme: 'twitter-bootstrap-4' %>
+  </div>
+</div>

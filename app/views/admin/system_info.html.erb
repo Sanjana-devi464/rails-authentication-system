@@ -1,0 +1,319 @@
+<% content_for :title, "System Information" %>
+
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h2>System Information</h2>
+    <p class="text-muted">Technical details and system status</p>
+  </div>
+  <div class="col-md-4 text-end">
+    <div class="btn-group" role="group">
+      <%= link_to admin_path, class: "btn btn-outline-secondary btn-sm" do %>
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- System Overview -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-server me-2"></i>System Overview</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="mb-3">Framework & Runtime</h6>
+            <table class="table table-sm">
+              <tr>
+                <td><strong>Ruby Version:</strong></td>
+                <td><%= @system_info[:ruby_version] %></td>
+              </tr>
+              <tr>
+                <td><strong>Rails Version:</strong></td>
+                <td><%= @system_info[:rails_version] %></td>
+              </tr>
+              <tr>
+                <td><strong>Environment:</strong></td>
+                <td>
+                  <span class="badge bg-<%= Rails.env.production? ? 'danger' : Rails.env.development? ? 'warning' : 'info' %>">
+                    <%= @system_info[:environment].capitalize %>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Database:</strong></td>
+                <td><%= @system_info[:database_adapter] %></td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="col-md-6">
+            <h6 class="mb-3">Performance Metrics</h6>
+            <table class="table table-sm">
+              <tr>
+                <td><strong>Application Uptime:</strong></td>
+                <td><%= @system_info[:uptime] %></td>
+              </tr>
+              <tr>
+                <td><strong>Memory Usage:</strong></td>
+                <td><%= @system_info[:memory_usage] %></td>
+              </tr>
+              <tr>
+                <td><strong>Database Size:</strong></td>
+                <td>
+                  <% if @system_info[:total_database_size].is_a?(Integer) %>
+                    <%= number_to_human_size(@system_info[:total_database_size]) %>
+                  <% else %>
+                    <%= @system_info[:total_database_size] %>
+                  <% end %>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Current Time:</strong></td>
+                <td><%= Time.current.strftime('%B %d, %Y at %I:%M %p %Z') %></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gem Information -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-gem me-2"></i>Key Dependencies</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="mb-3">Authentication & Authorization</h6>
+            <ul class="list-unstyled">
+              <li><i class="fas fa-check text-success me-2"></i>Devise (Authentication)</li>
+              <li><i class="fas fa-check text-success me-2"></i>Rolify (Role Management)</li>
+              <li><i class="fas fa-check text-success me-2"></i>CanCanCan (Authorization)</li>
+            </ul>
+            
+            <h6 class="mb-3 mt-4">Content Management</h6>
+            <ul class="list-unstyled">
+              <li><i class="fas fa-check text-success me-2"></i>Trix (Rich Text Editor)</li>
+              <li><i class="fas fa-check text-success me-2"></i>FriendlyId (SEO URLs)</li>
+              <li><i class="fas fa-check text-success me-2"></i>Acts as Taggable On</li>
+            </ul>
+          </div>
+          
+          <div class="col-md-6">
+            <h6 class="mb-3">Search & Pagination</h6>
+            <ul class="list-unstyled">
+              <li><i class="fas fa-check text-success me-2"></i>Ransack (Search)</li>
+              <li><i class="fas fa-check text-success me-2"></i>Kaminari (Pagination)</li>
+            </ul>
+            
+            <h6 class="mb-3 mt-4">UI & Utilities</h6>
+            <ul class="list-unstyled">
+              <li><i class="fas fa-check text-success me-2"></i>Bootstrap 5.3</li>
+              <li><i class="fas fa-check text-success me-2"></i>Stimulus (JS Framework)</li>
+              <li><i class="fas fa-check text-success me-2"></i>Geocoder</li>
+              <li><i class="fas fa-check text-success me-2"></i>Image Processing</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Database Information -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-database me-2"></i>Database Information</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="mb-3">Table Counts</h6>
+            <table class="table table-sm">
+              <tr>
+                <td><strong>Users:</strong></td>
+                <td><%= User.count %></td>
+              </tr>
+              <tr>
+                <td><strong>Profiles:</strong></td>
+                <td><%= Profile.count %></td>
+              </tr>
+              <tr>
+                <td><strong>Posts:</strong></td>
+                <td><%= Post.count %></td>
+              </tr>
+              <tr>
+                <td><strong>Comments:</strong></td>
+                <td><%= Comment.count %></td>
+              </tr>
+              <tr>
+                <td><strong>User Activities:</strong></td>
+                <td><%= UserActivity.count %></td>
+              </tr>
+              <tr>
+                <td><strong>Notifications:</strong></td>
+                <td><%= Notification.count %></td>
+              </tr>
+              <tr>
+                <td><strong>Roles:</strong></td>
+                <td><%= Role.count %></td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="col-md-6">
+            <h6 class="mb-3">Database Health</h6>
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <span>Connection Status:</span>
+                <span class="badge bg-success">Active</span>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <span>Migration Status:</span>
+                <% begin %>
+                  <% pending_migrations = ActiveRecord::Migration.check_pending! rescue [] %>
+                  <span class="badge bg-success">Up to Date</span>
+                <% rescue ActiveRecord::PendingMigrationError %>
+                  <span class="badge bg-warning">Pending Migrations</span>
+                <% end %>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <span>Total Records:</span>
+                <strong>
+                  <%= User.count + Profile.count + Post.count + Comment.count + 
+                      UserActivity.count + Notification.count + Role.count %>
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Application Configuration -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Application Configuration</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="mb-3">Feature Status</h6>
+            <table class="table table-sm">
+              <tr>
+                <td><strong>User Registration:</strong></td>
+                <td><span class="badge bg-success">Enabled</span></td>
+              </tr>
+              <tr>
+                <td><strong>Email Verification:</strong></td>
+                <td><span class="badge bg-secondary">Disabled</span></td>
+              </tr>
+              <tr>
+                <td><strong>Password Reset:</strong></td>
+                <td><span class="badge bg-success">Enabled</span></td>
+              </tr>
+              <tr>
+                <td><strong>User Profiles:</strong></td>
+                <td><span class="badge bg-success">Enabled</span></td>
+              </tr>
+              <tr>
+                <td><strong>Posts System:</strong></td>
+                <td><span class="badge bg-success">Enabled</span></td>
+              </tr>
+              <tr>
+                <td><strong>Comments System:</strong></td>
+                <td><span class="badge bg-success">Enabled</span></td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="col-md-6">
+            <h6 class="mb-3">Security Configuration</h6>
+            <table class="table table-sm">
+              <tr>
+                <td><strong>CSRF Protection:</strong></td>
+                <td><span class="badge bg-success">Enabled</span></td>
+              </tr>
+              <tr>
+                <td><strong>Force SSL:</strong></td>
+                <td>
+                  <span class="badge bg-<%= Rails.application.config.force_ssl ? 'success' : 'warning' %>">
+                    <%= Rails.application.config.force_ssl ? 'Enabled' : 'Disabled' %>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Session Timeout:</strong></td>
+                <td>30 minutes</td>
+              </tr>
+              <tr>
+                <td><strong>Password Strength:</strong></td>
+                <td><span class="badge bg-success">6+ characters</span></td>
+              </tr>
+              <tr>
+                <td><strong>Admin Access:</strong></td>
+                <td><span class="badge bg-danger">Email Restricted</span></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card admin-card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="d-grid">
+              <%= link_to admin_analytics_path, class: "btn btn-admin mb-2" do %>
+                <i class="fas fa-chart-bar me-2"></i>View Detailed Analytics
+              <% end %>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="d-grid">
+              <%= link_to rails_info_routes_path, class: "btn btn-outline-primary mb-2", target: "_blank" do %>
+                <i class="fas fa-route me-2"></i>View Application Routes
+              <% end %>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="d-grid">
+              <%= link_to rails_info_properties_path, class: "btn btn-outline-secondary mb-2", target: "_blank" do %>
+                <i class="fas fa-info-circle me-2"></i>Rails Info Properties
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

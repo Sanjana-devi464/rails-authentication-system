@@ -134,6 +134,17 @@ Rails.application.routes.draw do
   # Direct uploads for Active Storage (for Trix image uploads)
   resources :direct_uploads, only: [:create]
   
+  # Admin routes (restricted to specific email)
+  get '/admin', to: 'admin#index'
+  get '/admin/users', to: 'admin#users'
+  get '/admin/posts', to: 'admin#posts'
+  get '/admin/comments', to: 'admin#comments'
+  get '/admin/analytics', to: 'admin#analytics'
+  get '/admin/system_info', to: 'admin#system_info'
+  delete '/admin/users/:id', to: 'admin#destroy_user', as: 'admin_destroy_user'
+  delete '/admin/posts/:id', to: 'admin#destroy_post', as: 'admin_destroy_post'
+  delete '/admin/comments/:id', to: 'admin#destroy_comment', as: 'admin_destroy_comment'
+
   # Health check
   get 'health', to: 'health#check'
 end

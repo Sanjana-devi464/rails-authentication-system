@@ -5,6 +5,14 @@ class ProfilesController < ApplicationController
   
   def index
     @q = User.ransack(params[:q])
+    
+    # First, ensure all users have profiles (without pagination)
+    users_without_profiles = User.left_joins(:profile).where(profiles: { id: nil })
+    users_without_profiles.find_each do |user|
+      user.create_profile
+    end
+    
+    # Now get paginated results with only public profiles
     @users = @q.result
                .includes(:profile)
                .joins(:profile)
@@ -26,8 +34,19 @@ class ProfilesController < ApplicationController
   
   def show
     @profile = @user.profile
+    
+    # If profile doesn't exist, create it
+    unless @profile
+      @profile = @user.create_profile
+    end
+    
     @recent_activities = @user.user_activities.recent.limit(10)
     @social_links = @profile&.social_links || {}
+    
+    # Enhanced profile statistics
+    @user_stats = calculate_user_stats(@user)
+    @recent_posts = @user.posts.published.recent.limit(6)
+    @recent_comments = @user.comments.recent.includes(:post).limit(6)
     
     # Track profile view
     if @user != current_user && @profile&.public?
@@ -42,7 +61,7 @@ class ProfilesController < ApplicationController
     
     respond_to do |format|
       format.html
-      format.json { render json: profile_json_data }
+      format.json { render json: enhanced_profile_json_data }
     end
   end
   
@@ -88,6 +107,7 @@ class ProfilesController < ApplicationController
   
   def search
     query = params[:q]&.strip
+    @q = User.ransack(params[:q]) # For consistency with index action
     
     if query.present?
       @users = User.joins(:profile)
@@ -97,9 +117,10 @@ class ProfilesController < ApplicationController
                     "%#{query}%", "%#{query}%", "%#{query}%", "%#{query}%", "%#{query}%"
                   )
                   .includes(:profile)
-                  .limit(20)
+                  .page(params[:page])
+                  .per(20)
     else
-      @users = User.none
+      @users = User.none.page(params[:page]).per(20)
     end
     
     respond_to do |format|
@@ -121,9 +142,32 @@ class ProfilesController < ApplicationController
   private
   
   def set_user
-    @user = User.find_by!(username: params[:id]) || User.find(params[:id])
-  rescue ActiveRecord::RecordNotFound
-    redirect_to profiles_path, alert: 'User not found.'
+    # Debug: log the parameter being used
+    Rails.logger.debug "Looking for user with param: #{params[:id]}"
+    
+    # Try to find by username first (since routes use :username param), then fallback to ID
+    @user = User.find_by(username: params[:id])
+    
+    # If not found by username, try by ID (for backward compatibility)
+    if @user.nil?
+      @user = User.find_by(id: params[:id])
+      Rails.logger.debug "User found by ID: #{@user&.id}" if @user
+    else
+      Rails.logger.debug "User found by username: #{@user.username}"
+    end
+    
+    # If still not found, check if the user exists but doesn't have a profile
+    if @user.nil?
+      Rails.logger.error "User not found with param: #{params[:id]}"
+      redirect_to profiles_path, alert: 'User not found.'
+      return
+    end
+    
+    # Ensure user has a profile
+    unless @user.profile
+      Rails.logger.warn "User #{@user.id} (#{@user.username}) doesn't have a profile. Creating one."
+      @user.create_profile
+    end
   end
   
   def ensure_own_profile
@@ -198,7 +242,8 @@ class ProfilesController < ApplicationController
     {
       query: params[:q],
       results: @users.map { |user| user_summary(user) },
-      count: @users.length
+      count: @users.respond_to?(:total_count) ? @users.total_count : @users.count,
+      current_page: params[:page]&.to_i || 1
     }
   end
   
@@ -243,5 +288,61 @@ class ProfilesController < ApplicationController
           user.profile.occupation
         )
         .order(:created_at)
+  end
+
+  def calculate_user_stats(user)
+    {
+      total_posts: user.posts.count,
+      published_posts: user.posts.published.count,
+      draft_posts: user.posts.drafts.count,
+      total_comments: user.comments.count,
+      total_activities: user.user_activities.count,
+      profile_views: user.profile&.profile_views || 0,
+      member_since: user.created_at,
+      last_activity: user.user_activities.maximum(:created_at),
+      comments_this_month: user.comments.where(created_at: 1.month.ago..Time.current).count,
+      posts_this_month: user.posts.where(created_at: 1.month.ago..Time.current).count,
+      avg_comments_per_post: user.posts.published.count > 0 ? 
+        (user.posts.published.joins(:comments).count.to_f / user.posts.published.count).round(1) : 0,
+      most_active_day: calculate_most_active_day(user),
+      activity_score: calculate_activity_score(user)
+    }
+  end
+
+  def calculate_most_active_day(user)
+    activities_by_day = user.user_activities.group_by { |a| a.created_at.wday }
+    return 'No activity yet' if activities_by_day.empty?
+    
+    most_active_day_number = activities_by_day.max_by { |_, activities| activities.count }.first
+    Date::DAYNAMES[most_active_day_number]
+  end
+
+  def calculate_activity_score(user)
+    # Simple activity score based on posts, comments, and activities
+    score = 0
+    score += user.posts.published.count * 10  # 10 points per published post
+    score += user.comments.count * 5          # 5 points per comment
+    score += user.user_activities.count * 1   # 1 point per activity
+    score += (user.profile&.profile_views || 0) * 0.1  # 0.1 points per profile view
+    score.round
+  end
+
+  def enhanced_profile_json_data
+    {
+      user: user_detail(@user),
+      profile: @profile&.as_json(except: [:created_at, :updated_at]),
+      stats: @user_stats,
+      recent_posts: @recent_posts.as_json(only: [:id, :title, :slug, :created_at], methods: [:comments_count]),
+      recent_comments: @recent_comments.as_json(only: [:id, :content, :created_at], include: { post: { only: [:id, :title, :slug] } }),
+      recent_activities: @recent_activities.map do |activity|
+        {
+          type: activity.activity_type,
+          description: activity.formatted_description,
+          time_ago: activity.time_ago
+        }
+      end,
+      social_links: @social_links,
+      is_own_profile: @user == current_user
+    }
   end
 end
