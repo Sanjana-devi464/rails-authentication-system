@@ -32,12 +32,6 @@ rails server
 
 Visit `http://localhost:3000` to access the application.
 
-## 🔑 Admin Access
-
-- **Admin Email**: `admin@railsauth.com`
-- **Admin Password**: `admin123!`
-- **Admin Panel**: `/admin` (if implemented)
-
 ## ✨ Key Features
 
 ### 🔐 **Authentication & User Management**
