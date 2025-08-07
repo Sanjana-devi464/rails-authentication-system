@@ -9,169 +9,134 @@
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
     
-    <!-- Additional admin-specific styles -->
-    <style>
-      .admin-header {
-        background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-        color: white;
-        padding: 1rem 0;
-        margin-bottom: 2rem;
-      }
-      
-      .admin-nav {
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-        padding: 0.5rem 0;
-      }
-      
-      .admin-card {
-        border: none;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        transition: all 0.15s ease-in-out;
-      }
-      
-      .admin-card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        transform: translateY(-2px);
-      }
-      
-      .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-      }
-      
-      .stat-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-      }
-      
-      .stat-label {
-        font-size: 0.875rem;
-        opacity: 0.9;
-      }
-      
-      .admin-sidebar {
-        background: #f8f9fa;
-        min-height: calc(100vh - 200px);
-        padding: 1rem;
-        border-radius: 0.5rem;
-      }
-      
-      .admin-content {
-        background: white;
-        padding: 2rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-      }
-      
-      .table-responsive {
-        border-radius: 0.5rem;
-        overflow: hidden;
-      }
-      
-      .btn-admin {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-        transition: all 0.15s ease-in-out;
-      }
-      
-      .btn-admin:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-        color: white;
-      }
-    </style>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   </head>
 
   <body>
+    <!-- Navigation Bar (consistent with main app) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <%= link_to "RoR Auth App", root_path, class: "navbar-brand" %>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <%= link_to "🛡️ Admin Dashboard", admin_path, class: "nav-link #{'active fw-bold' if current_page?(admin_path)}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "👥 Users", admin_users_path, class: "nav-link #{'active fw-bold' if current_page?(admin_users_path)}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "📝 Posts", admin_posts_path, class: "nav-link #{'active fw-bold' if current_page?(admin_posts_path)}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "💬 Comments", admin_comments_path, class: "nav-link #{'active fw-bold' if current_page?(admin_comments_path)}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "📊 Analytics", admin_analytics_path, class: "nav-link #{'active fw-bold' if current_page?(admin_analytics_path)}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "ℹ️ System Info", admin_system_info_path, class: "nav-link #{'active fw-bold' if current_page?(admin_system_info_path)}" %>
+            </li>
+          </ul>
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle"></i> <%= current_user.display_name %>
+              </a>
+              <ul class="dropdown-menu">
+                <li><%= link_to "Dashboard", dashboard_path, class: "dropdown-item" %></li>
+                <li><%= link_to "Main Site", root_path, class: "dropdown-item" %></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <%= form_with url: destroy_user_session_path, method: :delete, local: true, class: "d-inline" do %>
+                    <button type="submit" class="dropdown-item btn btn-link p-0 border-0 w-100 text-start" style="background: none; color: inherit;">
+                      Sign Out
+                    </button>
+                  <% end %>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
     <!-- Admin Header -->
     <div class="admin-header">
       <div class="container">
         <div class="row align-items-center">
-          <div class="col-md-6">
-            <h1 class="h3 mb-0">
+          <div class="col-md-8">
+            <h1 class="h3 mb-1">
               🛡️ Admin Panel
             </h1>
-            <small class="opacity-75">Comprehensive system management</small>
+            <p class="welcome-message">
+              Comprehensive system management
+            </p>
           </div>
-          <div class="col-md-6 text-end">
-            <span class="me-3">Welcome, <%= current_user.display_name %></span>
-            <%= link_to dashboard_path, class: "btn btn-outline-light btn-sm me-2" do %>
-              🏠 Dashboard
-            <% end %>
-            <%= link_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light btn-sm" do %>
-              🚪 Logout
-            <% end %>
+          <div class="col-md-4 text-md-end">
+            <p class="mb-1 welcome-message">
+              Welcome, <%= current_user.display_name %> 🔒
+            </p>
+            <%= link_to "Logout", destroy_user_session_path, 
+                method: :delete, 
+                class: "btn btn-logout btn-sm",
+                data: { confirm: "Are you sure?" } %>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Admin Navigation -->
-    <div class="admin-nav">
-      <div class="container">
-        <nav class="navbar navbar-expand-lg">
-          <div class="container-fluid">
-            <div class="navbar-nav">
-              <%= link_to admin_path, class: "nav-link #{'active' if current_page?(admin_path)}" do %>
-                📊 Dashboard
-              <% end %>
-              <%= link_to admin_users_path, class: "nav-link #{'active' if current_page?(admin_users_path)}" do %>
-                👥 Users
-              <% end %>
-              <%= link_to admin_posts_path, class: "nav-link #{'active' if current_page?(admin_posts_path)}" do %>
-                📝 Posts
-              <% end %>
-              <%= link_to admin_comments_path, class: "nav-link #{'active' if current_page?(admin_comments_path)}" do %>
-                💬 Comments
-              <% end %>
-              <%= link_to admin_analytics_path, class: "nav-link #{'active' if current_page?(admin_analytics_path)}" do %>
-                📈 Analytics
-              <% end %>
-              <%= link_to admin_system_info_path, class: "nav-link #{'active' if current_page?(admin_system_info_path)}" do %>
-                🖥️ System Info
-              <% end %>
-            </div>
-          </div>
-        </nav>
-      </div>
-    </div>
-
-    <!-- Flash Messages -->
-    <div class="container mt-3">
-      <% flash.each do |type, msg| %>
-        <div class="alert alert-<%= type == 'notice' ? 'success' : 'danger' %> alert-dismissible fade show" role="alert">
-          <%= msg %>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <main class="container mt-4">
+      <% if notice %>
+        <div class="alert alert-success alert-dismissible fade show admin-alert" role="alert">
+          <%= notice %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
       <% end %>
-    </div>
 
-    <!-- Main Content -->
-    <div class="container mb-5">
-      <%= yield %>
-    </div>
-
-    <!-- Footer -->
-    <footer class="bg-light text-center py-3 mt-5">
-      <div class="container">
-        <small class="text-muted">
-          Admin Panel | <%= Rails.application.class.module_parent_name %> | 
-          <%= Date.current.year %> | 
-          Built with Ruby on Rails <%= Rails.version %>
-        </small>
+      <% if alert %>
+        <div class="alert alert-danger alert-dismissible fade show admin-alert" role="alert">
+          <%= alert %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% end %>
+            </h1>
+          </div>
+         
+          </div>
+        </div>
       </div>
-    </footer>
+    </div>
 
-    <!-- Font Awesome for icons -->
+    <main class="container mt-4">
+      <% if notice %>
+        <div class="alert alert-success alert-dismissible fade show admin-alert" role="alert">
+          <%= notice %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% end %>
+
+      <% if alert %>
+        <div class="alert alert-danger alert-dismissible fade show admin-alert" role="alert">
+          <%= alert %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% end %>
+
+      <%= yield %>
+    </main>
+
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

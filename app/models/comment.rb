@@ -33,6 +33,15 @@ class Comment < ApplicationRecord
   scope :for_post, ->(post) { where(post: post) }
   scope :by_user, ->(user) { where(user: user) }
 
+  # Ransack configuration for admin search
+  def self.ransackable_attributes(auth_object = nil)
+    ["content", "created_at", "id", "post_id", "updated_at", "user_id"]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ["post", "user"]
+  end
+
   # Callbacks
   after_create :track_creation_activity
   after_create :notify_post_author

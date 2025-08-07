@@ -48,6 +48,17 @@ class Profile < ApplicationRecord
   
   # Scopes
   scope :public_profiles, -> { where(public: true) }
+  
+  # Ransack configuration for admin search
+  def self.ransackable_attributes(auth_object = nil)
+    ["bio", "website", "github_username", "linkedin_username", "twitter_username", 
+     "age", "gender", "status", "theme_preference", "language", "public", 
+     "created_at", "updated_at", "id", "user_id"]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ["user"]
+  end
   scope :available, -> { where(status: :available) }
   scope :with_social_links, -> { where.not(github_username: nil).or(where.not(linkedin_username: nil)) }
   

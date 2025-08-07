@@ -51,6 +51,16 @@ class UserActivity < ApplicationRecord
   scope :authentication_activities, -> { where(activity_type: [0, 1, 2, 3, 4]) }
   scope :social_activities, -> { where(activity_type: [20, 21, 22, 23, 24, 25, 26]) }
   
+  # Ransack configuration for admin search
+  def self.ransackable_attributes(auth_object = nil)
+    ["activity_type", "description", "ip_address", "user_agent", "trackable_type", 
+     "trackable_id", "created_at", "updated_at", "id", "user_id"]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ["user", "trackable"]
+  end
+  
   # Callbacks
   before_create :set_ip_address
   after_create :cleanup_old_activities

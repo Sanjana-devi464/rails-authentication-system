@@ -52,6 +52,16 @@ class Notification < ApplicationRecord
   scope :high_priority, -> { where(priority: [:high, :urgent]) }
   scope :this_week, -> { where(created_at: 1.week.ago..Time.current) }
   
+  # Ransack configuration for admin search
+  def self.ransackable_attributes(auth_object = nil)
+    ["title", "message", "notification_type", "priority", "read_at", 
+     "created_at", "updated_at", "id", "user_id", "actor_id", "notifiable_type", "notifiable_id"]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ["user", "actor", "notifiable"]
+  end
+  
   # Callbacks
   after_create :send_real_time_notification
   after_create :send_push_notification, if: :should_send_push?

@@ -44,6 +44,15 @@ class User < ApplicationRecord
   scope :by_role, ->(role) { with_role(role) }
   scope :online, -> { where('last_seen_at > ?', 15.minutes.ago) }
   
+  # Ransack configuration for admin search
+  def self.ransackable_attributes(auth_object = nil)
+    ["first_name", "last_name", "username", "email", "created_at", "updated_at", "id", "bio", "location", "active", "last_seen_at"]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ["profile", "posts", "comments", "user_activities", "notifications"]
+  end
+  
   # Callbacks
   after_create :create_default_profile
   after_create :assign_default_role
