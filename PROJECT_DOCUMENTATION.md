@@ -120,8 +120,6 @@ A comprehensive Ruby on Rails authentication system built with Devise gem, featu
 ## 👑 Admin Panel
 
 ### Admin Authentication
-- **Email**: `admin@railsauth.com`
-- **Password**: `admin123!`
 - **Protected Routes** - All admin routes require admin authentication
 - **Role-based Access** - Separate admin role with enhanced permissions
 
